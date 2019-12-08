@@ -35,10 +35,10 @@ for i in range(len(images)):
     img = np.asarray(img, dtype="uint8" )
     # turn image to grayscale
     bw = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    (thres, bw) = cv.threshold(bw,70,255,cv.THRESH_TOZERO)
-    bw = cv.adaptiveThreshold(bw, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
-                               cv.THRESH_BINARY,101,2)
-    # (thres, bw) = cv.threshold(bw,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+    # (thres, bw) = cv.threshold(bw,70,255,cv.THRESH_TOZERO)
+    # bw = cv.adaptiveThreshold(bw, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
+    #                            cv.THRESH_BINARY,101,2)
+    (thres, bw) = cv.threshold(bw,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
     bwImg.append(bw)
     ax[i//6, i%6].imshow(bw, cmap='binary')
 
