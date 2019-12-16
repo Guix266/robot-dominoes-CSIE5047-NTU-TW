@@ -102,10 +102,8 @@ class Domino_on_board(Domino):
         else:
             Domino.board.append(self.name)
         
-        #Test if it is possible to add this domino to this parent
-        # self.test_compatibility(self, parent, position)
-            
         # define the parent
+        print(Domino.board)
         if (parent.name not in Domino.board):
             raise Exception("The parent is not on the board!")
         self.parent = parent
@@ -132,9 +130,11 @@ class Domino_on_board(Domino):
                     elif int(name[0]) == 0:
                         self.south = int(name[0])
                         self.north = int(name[1])
-                    else:
+                    elif int(name[1]) == 0:
                         self.south = int(name[1])
                         self.north = int(name[0])
+                    else:
+                        raise Exception("The dominos are not compatibles!")
                 else:
                     if int(name[0]) == self.parent.north:
                         self.south = int(name[0])
@@ -145,13 +145,29 @@ class Domino_on_board(Domino):
                     elif int(name[0]) == 0:
                         self.south = int(name[0])
                         self.north = int(name[1])
-                    else:
+                    elif int(name[1]) == 0:
                         self.south = int(name[1])
                         self.north = int(name[0])
-
+                    else:
+                        raise Exception("The dominos are not compatibles!")
+            else:   # if parent == following domino
+                if int(name[0]) == self.parent.north:
+                    self.south = int(name[0])
+                    self.north = int(name[1])
+                elif int(name[1]) == self.parent.north:
+                    self.south = int(name[1])
+                    self.north = int(name[0])
+                elif int(name[0]) == 0:
+                    self.south = int(name[0])
+                    self.north = int(name[1])
+                elif int(name[1]) == 0:
+                    self.south = int(name[1])
+                    self.north = int(name[0])
+                else:
+                    raise Exception("The dominos are not compatibles!")
+                    
         #Add the child in the parent list
         self.addChild_to_parent(position)
-
 
     def addChild_to_parent(self, position):
         """Add the child to the good place on the parent list"""
@@ -159,14 +175,8 @@ class Domino_on_board(Domino):
             self.parent.children = self.name
         else:
             self.parent.children[position] = self.name
-
-    # def test_compatibility(self, parent, position):
-    #     """Test if it is the numbers we want to connect match together"""
-    #         if self.dom_type == "simple":
-    #             parent.children[position] == 
-                
-    #             raise Exception("These 2 dominoes are not compatible, you can't play "+ str(Domino(name))+ " with "+str(Domino(parent)))
-                        
+           
+        
         
 class Starting_Domino(Domino):
     def __init__(self, name):
@@ -186,12 +196,6 @@ class Starting_Domino(Domino):
             self.children = ['empty','empty','empty','empty'] # N,S,E,W
         else:                                   # case 2 links (simple)
             self.children = ['empty','empty'] # N,S
-           
-        
-        
-
-# dom11 = Starting_Domino("11")
-# dom12 = Domino_on_board("13", dom11, N)
 
 
 # =============================================================================
@@ -268,5 +272,5 @@ def play_this_domino(name, parent):
 dom23 = Starting_Domino("23")
 print(dom23.north)
 print(dom23.south)
-dom34 = play_this_domino("24", dom23)
-dom54 = play_this_domino("54", dom34)
+dom24 = play_this_domino("24", dom23)
+dom54 = play_this_domino("54", dom24)
