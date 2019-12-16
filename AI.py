@@ -59,14 +59,6 @@ import matplotlib.pyplot as plt
 # =============================================================================
 # DEFINE DOMINOES
 # =============================================================================
-dominos = np.array(  [  "66",
-                        "65","55",
-                        "64","54","44",
-                        "63","53","43","33",
-                        "62","52","42","32","22",
-                        "61","51","41","31","21","11"])
-                        # "60","50","40","30","20","10","00"] )
-
 N,S,E,W = 0, 1, 2, 3
 
 class Domino():
@@ -201,17 +193,6 @@ class Starting_Domino(Domino):
 # Launch a game
 # =============================================================================
 
-np.random.shuffle(dominos)
-#print(dominos)
-
-# tilt number in each hand
-m = 4
-
-# dispense tilts 
-hand1 = dominos[0:m]
-hand2 = dominos[m:2*m]
-stock = dominos[2*m:]
-
 def draw(hand, stock):
     """the player with this hand draw one tills"""
     if len(stock)==0:
@@ -220,7 +201,6 @@ def draw(hand, stock):
         hand.append(stock[0])
         stock = stock[1:]
 
-#def options(hand)
         
 def play_this_domino(name, parent):
     """play the domino in a logical order parent=Domino_obj"""
@@ -268,6 +248,40 @@ def play_this_domino(name, parent):
             else:
                 return("The domino is already connected!")
 
-dom23 = Starting_Domino("23")
-dom24 = play_this_domino("24", dom23)
-dom54 = play_this_domino("54", dom24)
+# dom23 = Starting_Domino("23")
+# dom24 = play_this_domino("24", dom23)
+# dom54 = play_this_domino("54", dom24)
+
+def show_possibilities(hand, board):
+    return
+    
+    
+def launch_game(m):
+    """Start a dominoes game with m tilts par hand"""
+    
+    # Start the game
+    dominos = np.array(  [  "66",
+                            "65","55",
+                            "64","54","44",
+                            "63","53","43","33",
+                            "62","52","42","32","22",
+                            "61","51","41","31","21","11",
+                            "60","50","40","30","20","10","00"] )
+    np.random.shuffle(dominos)
+    # dispense tilts 
+    hand1 = dominos[0:m]
+    hand2 = dominos[m:2*m]
+    stock = dominos[2*m:]
+    
+    #Place the first domino on the board from the stock
+    Board = []
+    Board.append(Starting_Domino(stock[0]))
+    stock = stock[1:]
+    
+    print(hand1)
+    print(hand2)
+    print(Board)
+
+
+launch_game(5)
+
