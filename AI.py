@@ -103,13 +103,13 @@ class Domino_on_board(Domino):
             Domino.board.append(self.name)
         
         #Test if it is possible to add this domino to this parent
-        self.test_compatibility(name, parent.name)
+        self.test_compatibility(name, parent, position)
             
         # define the parent
         if (parent.name not in Domino.board):
             raise Exception("The parent is not on the board!")
         self.parent = parent
-        
+        raise Exception("The parent is not on the board!")
         # define the children list
         if (self.dom_type == "double"):        # case 3 links (double)
             self.children = ['empty','empty','empty'] # N,S,E the W is the father
@@ -130,10 +130,10 @@ class Domino_on_board(Domino):
     #     else:
     #         self.parent.children[position] = self.name
 
-    def test_compatibility(self, name, parent):
-        if name[0] != parent[0] and name[0] != parent[1] and name[1] != parent[0] and name[1] != parent[1]:
+    def test_compatibility(self, name, parent, position):
+        if name[0] != parent.name[0] and name[0] != parent[1] and name[1] != parent[0] and name[1] != parent[1]:
             raise Exception("These 2 dominoes are not compatible, you can't play "+ str(Domino(name))+ " with "+str(Domino(parent)))
-        
+                        
         
 class Starting_Domino(Domino):
     def __init__(self, name):
@@ -191,23 +191,44 @@ def play_this_domino(name, parent):
     
     if parent.dom_type == "simple":
         if parent.type == Starting_Domino:
-            if parent.north = int(name[0]) or parent.north = int(name[1]):
+            if parent.north == int(name[0]) or parent.north == int(name[1]):
+                if parent.children[N] == 'empty':
+                    Domino_on_board(name, parent, N)
+                else:
+                    return("The domino is already fully connected!"+parent.children)
+            elif parent.south == int(name[0]) or parent.south == int(name[1]):
+                if parent.children[S] == 'empty':
+                    Domino_on_board(name, parent, N)
+                else:
+                    return("The domino is already fully connected!"+parent.children)
+        else:   #one possibility if following domino
+            if parent.children == 'empty':
                 Domino_on_board(name, parent, N)
-            else parent.south = int(name[0]) or parent.south = int(name[1]):
-                Domino_on_board(name, parent, S)
-        else:
-            Domino_on_board(name, parent, N) #one possibility if following domino
+            else:
+                 return("The domino is already fully connected!"+parent.children)
     
     elif parent.dom_type == "double":
-        #order : N then S then E then W
-        if parent.type == Starting_Domino:
-            if parent.children
-        
+        if parent.type == Starting_Domino:   #order : N then S then E then W
+            if parent.children[N] != 'empty':
+                Domino_on_board(name, parent, N)
+            elif parent.children[S] != 'empty':
+                Domino_on_board(name, parent, S)
+            elif parent.children[E] != 'empty':
+                Domino_on_board(name, parent, E)
+            elif parent.children[W] != 'empty':
+                Domino_on_board(name, parent, W)
+            else:
+                return("The domino is already fully connected!"+parent.children)
+
         #order : E then N then S
         else:
-        parent.children
-    
-    
+            if parent.children[E] != 'empty':
+                Domino_on_board(name, parent, E)
+            elif parent.children[N] != 'empty':
+                Domino_on_board(name, parent, N)
+            elif parent.children[S] != 'empty':
+                Domino_on_board(name, parent, S)
+            else:
+                return("The domino is already connected!")
 
     
-    Domino_on_board(name, parent, position)
