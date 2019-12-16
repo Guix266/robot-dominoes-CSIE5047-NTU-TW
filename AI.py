@@ -103,7 +103,6 @@ class Domino_on_board(Domino):
             Domino.board.append(self.name)
         
         # define the parent
-        print(Domino.board)
         if (parent.name not in Domino.board):
             raise Exception("The parent is not on the board!")
         self.parent = parent
@@ -270,7 +269,5 @@ def play_this_domino(name, parent):
                 return("The domino is already connected!")
 
 dom23 = Starting_Domino("23")
-print(dom23.north)
-print(dom23.south)
 dom24 = play_this_domino("24", dom23)
 dom54 = play_this_domino("54", dom24)
