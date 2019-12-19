@@ -256,32 +256,33 @@ def show_possibilities(hand, board):
     return
     
     
-def launch_game(m):
-    """Start a dominoes game with m tilts par hand"""
-    
-    # Start the game
-    dominos = np.array(  [  "66",
-                            "65","55",
-                            "64","54","44",
-                            "63","53","43","33",
-                            "62","52","42","32","22",
-                            "61","51","41","31","21","11",
-                            "60","50","40","30","20","10","00"] )
-    np.random.shuffle(dominos)
-    # dispense tilts 
-    hand1 = dominos[0:m]
-    hand2 = dominos[m:2*m]
-    stock = dominos[2*m:]
-    
-    #Place the first domino on the board from the stock
-    Board = []
-    Board.append(Starting_Domino(stock[0]))
-    stock = stock[1:]
-    
-    print(hand1)
-    print(hand2)
-    print(Board)
+#######################################"
+
+"""Start a dominoes game with m tilts par hand"""
+m=5
+
+# Start the game
+dominos = np.array(  [  "66",
+                        "65","55",
+                        "64","54","44",
+                        "63","53","43","33",
+                        "62","52","42","32","22",
+                        "61","51","41","31","21","11",
+                        "60","50","40","30","20","10","00" ] )
+np.random.shuffle(dominos)
+# dispense tilts 
+hand1 = dominos[0:m]
+hand2 = dominos[m:2*m]
+stock = dominos[2*m:]
+
+#Place the first domino on the board from the stock
+Board = []
+Board.append(Starting_Domino(stock[0]))
+stock = stock[1:]
+
+print(hand1)
+print(hand2)
+print(Board)
 
 
-launch_game(5)
 
