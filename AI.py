@@ -149,8 +149,10 @@ def draw(hand, stock):
     if len(stock)==0:
         print("the stock is empty !")
     else : 
+        hand = list(hand)
         hand.append(stock[0])
         stock = stock[1:]
+    return(np.array(hand), stock)
 
         
 def play_this_domino(name, parent):
@@ -236,6 +238,13 @@ def show_possibilities(hand, board):
                     
     return parent_free_on_board, possibles
 
+def remove_from(array_dom, string):
+    n=int(array_dom.shape[0])
+    i=0
+    while (i < n) and (array_dom[i] != string):
+        i = i+1
+    new = list(array_dom[0:i])+list(array_dom[i+1:n])
+    return(np.array(new))
 
 ###Strategies applied by ai
 def choose_play_random(possibles):
@@ -272,21 +281,48 @@ Board = []
 Board.append(Starting_Domino(stock[0]))
 stock = stock[1:]
 
-print("After split :")
-print(hand1)
-print(hand2)
-print(Board)
-print("\n### Test ###")
-
-possibilities = show_possibilities(hand1, Board)
-print("# parents_free :")
-print(possibilities[0])
-print("# possibilities :")
-print(possibilities[1])
-
-print("# play chosen : (domino, parent)")
-play = choose_play_random(possibilities[1])
-print(play)
+for i in range(0,1):
+    
+    if i%2 == 0:
+        current_hand = hand1
+    else:
+        current_hand = hand2
+    
+    
+    print("\n# Values of the game :")
+    print(hand1)
+    print(hand2)
+    print(Board)
+    print("\n### Test ###")
+    
+    possibilities = show_possibilities(current_hand, Board)
+    print("# parents_free :")
+    print(possibilities[0])
+    print("# possibilities :")
+    print(possibilities[1])
+    
+    print("# play chosen : (domino, parent)")
+    play = choose_play_random(possibilities[1])
+    print(play)
+    
+    if play == False:
+        print("No play available... you draw LOL")
+        if i%2 == 0:
+            hand1, stock = draw(hand1, stock)
+        else:
+            hand2, stock = draw(hand2, stock)
+    else :
+        dom = play_this_domino(play[0], play[1])
+        Board.append(dom)
+        print("The player play "+str(dom)+" on this domino of the board "+str(play[1]))
+        if i%2 == 0:
+            hand1, stock = draw(hand1, stock)
+            remove_from(hand1, dom.name)
+        else:
+            hand2, stock = draw(hand2, stock)
+            remove_from(hand1, dom.name)
+    
+    input("Press Enter to continue...")
 
 
 
