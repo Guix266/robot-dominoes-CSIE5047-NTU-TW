@@ -3,58 +3,7 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-
-# class Domino:
-
-#     dominoes = []
-
-#     def __init__(self, parent, lower_half):
-#         self.parent = parent
-#         self.parent.addChild(self)
-#         self.children = []
-#         self.lower_half = lower_half
-#         self.upper_half = self.parent.lower_half
-#         self.name = ''.join(sorted([str(self.lower_half), str(self.upper_half)]))
-#         if self.name in Domino.dominoes:
-#             raise Exception("This domino was already initialized!")
-#         else:
-#             Domino.dominoes.append(self.name)
-#         if self.lower_half == self.upper_half:
-#             self.max_children = 3
-#         else:
-#             self.max_children = 1
-
-#     def __repr__(self):
-#         return "[ %s | %s ]" % (self.upper_half, self.lower_half)
-
-#     def addChild(self, child):
-#         if len(self.children) >= self.max_children:
-#             raise Exception("Can't add another child!")
-#         self.children.append(child)
-
-
-# class StartingDomino(Domino):
-#     def __init__(self, num):
-#         self.children = []
-#         self.lower_half = num
-#         self.upper_half = num
-#         self.name = str(num) + str(num)
-#         self.max_children = 4
-#         if self.name in Domino.dominoes:
-#             raise Exception("This domino was already initialized!")
-#         else:
-#             Domino.dominoes.append(self.name)
-
-
-# dom11 = StartingDomino(num=1)
-# dom12 = Domino(parent=dom11, lower_half=2)
-# dom13 = Domino(parent=dom11, lower_half=3)
-
-
-
-import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+import random
 
 # =============================================================================
 # DEFINE DOMINOES
@@ -66,8 +15,10 @@ class Domino():
     # list containing the dominos on the board
     board = []
     def __init__(self, name):
-        """Name char exemple : "11","42""..."""
+        """Name char exemple : "11","42", ..."""
         self.name = name
+        # self.position_x = position_x
+        # self.position_y = position_y
 
         if int(name[0])==int(name[1]):
             self.dom_type = "double"
@@ -105,8 +56,8 @@ class Domino_on_board(Domino):
         elif (self.dom_type == "simple"):      # case 1 links (simple)
             self.children = 'empty' # the child is in the N
 
-        # define on the dominos whiwh side is north and which is south
-        if (self.dom_type == "double"):
+        # define on the dominos which side is north and which is south (see convention)
+        if (self.dom_type == "double"): #take care about first put the non 0 side (#give more possibilities)
             self.north = int(name[0])
             self.south = int(name[1])
         else:
@@ -253,8 +204,48 @@ def play_this_domino(name, parent):
 # dom54 = play_this_domino("54", dom24)
 
 def show_possibilities(hand, board):
-    return
+    """ Return the play possibles corresponding to a hand :
+        the name of the tilts in the hand, the futur parent, the corresponding number
+        format : list(name, parent, number)"""
     
+    # Get the parent that still have children added
+    parent_free_on_board = []
+    for domino in board:
+        for i in range(0,len(domino.children)):
+            if domino.children[i] == "empty" :
+                if i == 1:  #for the case parent==starting_domino
+                    num = domino.south
+                else:
+                    num = domino.north
+                if [domino, num] not in parent_free_on_board:
+                    parent_free_on_board.append([domino, num])
+    
+    # Get the dominoes that can be added to the parent
+    possibles = []
+    for domino in hand:
+        for domino_b in parent_free_on_board: #parent+number_possible
+            f1 = int(domino[0])
+            f2 = int(domino[1])
+            if f1 == domino_b[1] or f2 == domino_b[1]:
+                possibles.append([domino]+domino_b)
+            if f1 == 0 or f2 == 0 or domino_b[1] == 0:
+                if [domino, num] not in parent_free_on_board:
+                    ans = [domino]+domino_b
+                    ans[2]=0
+                    possibles.append(ans)
+                    
+    return parent_free_on_board, possibles
+
+
+###Strategies applied by ai
+def choose_play_random(possibles):
+    """chose randomly among the possible plays"""
+    if len(possibles)==0:
+        return(False)
+    else:
+        play = random.choice(possibles)
+        #play = possibles[0]
+        return(play)
     
 #######################################"
 
@@ -262,27 +253,40 @@ def show_possibilities(hand, board):
 m=5
 
 # Start the game
-dominos = np.array(  [  "66",
+dominoes = np.array(  [ "66",
                         "65","55",
                         "64","54","44",
                         "63","53","43","33",
                         "62","52","42","32","22",
                         "61","51","41","31","21","11",
                         "60","50","40","30","20","10","00" ] )
-np.random.shuffle(dominos)
+
+np.random.shuffle(dominoes)
 # dispense tilts 
-hand1 = dominos[0:m]
-hand2 = dominos[m:2*m]
-stock = dominos[2*m:]
+hand1 = dominoes[0:m]
+hand2 = dominoes[m:2*m]
+stock = dominoes[2*m:]
 
 #Place the first domino on the board from the stock
 Board = []
 Board.append(Starting_Domino(stock[0]))
 stock = stock[1:]
 
+print("After split :")
 print(hand1)
 print(hand2)
 print(Board)
+print("\n### Test ###")
+
+possibilities = show_possibilities(hand1, Board)
+print("# parents_free :")
+print(possibilities[0])
+print("# possibilities :")
+print(possibilities[1])
+
+print("# play chosen : (domino, parent)")
+play = choose_play_random(possibilities[1])
+print(play)
 
 
 
