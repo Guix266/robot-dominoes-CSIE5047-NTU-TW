@@ -57,33 +57,48 @@ class Domino_on_board(Domino):
             self.children = 'empty' # the child is in the N
 
         # define on the dominos which side is north and which is south (see convention)
-        if (self.dom_type == "double"): #take care about first put the non 0 side (#give more possibilities)
-            self.north = int(name[0])
+        if (self.dom_type == "double"):  #take care about connect first the non 0 side 
+            self.north = int(name[0])               # (#give more possibilities)
             self.south = int(name[1])
-        else:
+        else: #domino simple
             if type(parent) == Starting_Domino: 
                 if position == S:
+                    # Classical case
                     if int(name[0]) == self.parent.south:
                         self.south = int(name[0])
                         self.north = int(name[1])
                     elif int(name[1]) == self.parent.south:
                         self.south = int(name[1])
                         self.north = int(name[0])
-                    elif int(name[0]) == 0:
+                    # case where the new domino is connected to the 0 of the old one 
+                    # Give arbitrary the south and north
+                    elif self.parent.south==0:
+                        self.south = int(name[0])
+                        self.north = int(name[1])
+                    # case where new domino has 0
+                    elif int(name[0]) == 0:         
                         self.south = int(name[0])
                         self.north = int(name[1])
                     elif int(name[1]) == 0:
                         self.south = int(name[1])
                         self.north = int(name[0])
+                
                     else:
                         raise Exception("The dominos are not compatibles!")
                 else:
+                    # Classical case
                     if int(name[0]) == self.parent.north:
                         self.south = int(name[0])
                         self.north = int(name[1])
                     elif int(name[1]) == self.parent.north:
                         self.south = int(name[1])
                         self.north = int(name[0])
+                    # case where the new domino is connected to the 0 of the old one 
+                    # Give arbitrary the south and north
+                    elif self.parent.south==0:
+                        self.south = int(name[0])
+                        self.north = int(name[1])
+                    # case where new domino has 0
                     elif int(name[0]) == 0:
                         self.south = int(name[0])
                         self.north = int(name[1])
@@ -93,12 +108,19 @@ class Domino_on_board(Domino):
                     else:
                         raise Exception("The dominos are not compatibles!")
             else:   # if parent == following domino
+                # Classical case
                 if int(name[0]) == self.parent.north:
                     self.south = int(name[0])
                     self.north = int(name[1])
                 elif int(name[1]) == self.parent.north:
                     self.south = int(name[1])
                     self.north = int(name[0])
+                # case where the new domino is connected to the 0 of the old one 
+                # Give arbitrary the south and north
+                elif self.parent.north==0:
+                    self.south = int(name[0])
+                    self.north = int(name[1])
+                # case where new domino has 0
                 elif int(name[0]) == 0:
                     self.south = int(name[0])
                     self.north = int(name[1])
@@ -113,13 +135,13 @@ class Domino_on_board(Domino):
 
     def addChild_to_parent(self, position):
         """Add the child to the good place on the parent list"""
-        if self.parent.dom_type == "simple":
+        if self.parent.dom_type == "simple" and type(self.parent) == Domino_on_board :
             self.parent.children = self.name
         else:
             self.parent.children[position] = self.name
            
-        
-        
+
+
 class Starting_Domino(Domino):
     def __init__(self, name):
         # create the domino
@@ -156,7 +178,8 @@ def draw(hand, stock):
 
         
 def play_this_domino(name, parent):
-    """play the domino in a logical order parent=Domino_obj"""
+    """play the domino in a logical order parent=Domino_obj
+    Only works when the point of connextion is not 0"""
 
     if parent.dom_type == "simple":
         if type(parent) == Starting_Domino:
@@ -169,12 +192,22 @@ def play_this_domino(name, parent):
                 if parent.children[S] == 'empty':
                     return(Domino_on_board(name, parent, S))
                 else:
-                    return("The domino is already fully connected!"+parent.children)
+                    return("The domino is already fully connected!"+ str(parent.children))
+            # case where we connect a domino parerent!=0 children==0
+            # We arbitrary connect to north or south of the parent
+            else:   
+                if parent.children[N] == 'empty':
+                    return(Domino_on_board(name, parent, N))
+                if parent.children[S] == 'empty':
+                    return(Domino_on_board(name, parent, S))
+                else:
+                    return("The domino is already fully connected!"+ str(parent.children))
+                
         else:   #one possibility if following domino
             if parent.children == 'empty':
                 return(Domino_on_board(name, parent, N))
             else:
-                 return("The domino is already fully connected!"+parent.children)
+                 return("The domino is already fully connected!"+ str(parent.children))
     
     elif parent.dom_type == "double":
         if type(parent) == Starting_Domino:   #order : N then S then E then W
@@ -188,7 +221,7 @@ def play_this_domino(name, parent):
                 return(Domino_on_board(name, parent, W))
             
             else:
-                return("The domino is already fully connected!"+parent.children)
+                return("The domino is already fully connected!"+ str(parent.children))
 
         #order : E then N then S
         else:
@@ -199,7 +232,7 @@ def play_this_domino(name, parent):
             elif parent.children[S] == 'empty':
                 return(Domino_on_board(name, parent, S))
             else:
-                return("The domino is already connected!")
+                return("The domino is already fully connected!"+ str(parent.children))
 
 # dom23 = Starting_Domino("23")
 # dom24 = play_this_domino("24", dom23)
@@ -213,14 +246,22 @@ def show_possibilities(hand, board):
     # Get the parent that still have children added
     parent_free_on_board = []
     for domino in board:
-        for i in range(0,len(domino.children)):
-            if domino.children[i] == "empty" :
-                if i == 1:  #for the case parent==starting_domino
-                    num = domino.south
-                else:
-                    num = domino.north
+        # case where only one children
+        if type(domino.children) == str: 
+            if domino.children == "empty" :
+                num =  domino.north
                 if [domino, num] not in parent_free_on_board:
-                    parent_free_on_board.append([domino, num])
+                        parent_free_on_board.append([domino, num])
+        # case where several children
+        else:
+            for i in range(0,len(domino.children)):
+                if domino.children[i] == "empty" :
+                    if i == 1:  #for the case parent==starting_domino
+                        num = domino.south
+                    else:
+                        num = domino.north
+                    if [domino, num] not in parent_free_on_board:
+                        parent_free_on_board.append([domino, num])
     
     # Get the dominoes that can be added to the parent
     possibles = []
@@ -228,12 +269,13 @@ def show_possibilities(hand, board):
         for domino_b in parent_free_on_board: #parent+number_possible
             f1 = int(domino[0])
             f2 = int(domino[1])
+            ans = [domino]+domino_b
             if f1 == domino_b[1] or f2 == domino_b[1]:
-                possibles.append([domino]+domino_b)
+                if ans not in possibles:      
+                    possibles.append(ans)
             if f1 == 0 or f2 == 0 or domino_b[1] == 0:
-                if [domino, num] not in parent_free_on_board:
-                    ans = [domino]+domino_b
-                    ans[2]=0
+                ans[2]=0
+                if ans not in possibles:      
                     possibles.append(ans)
                     
     return parent_free_on_board, possibles
@@ -246,6 +288,25 @@ def remove_from(array_dom, string):
     new = list(array_dom[0:i])+list(array_dom[i+1:n])
     return(np.array(new))
 
+def print_game_situations(hand1, hand2, Board):
+    print("\n # Game :")
+    print("hand 1 : "+ str(hand1))
+    print("hand 2 : "+ str(hand2))
+    print("Dominoes on Board : "+ str(Board))
+
+def print_results(hand1, hand2):
+    score1 = 0
+    score2 = 0
+    for domino in hand1:
+        score1 += int(domino[0])
+        score1 += int(domino[1])
+    for domino in hand2:
+        score2 += int(domino[0])
+        score2 += int(domino[1])    
+    print("Player 1 gets "+str(score1)+" malus" )
+    print("Player 2 gets "+str(score2)+" malus" )
+    return(score1, score2)
+    
 ###Strategies applied by ai
 def choose_play_random(possibles):
     """chose randomly among the possible plays"""
@@ -255,6 +316,7 @@ def choose_play_random(possibles):
         play = random.choice(possibles)
         #play = possibles[0]
         return(play)
+
     
 #######################################"
 
@@ -281,48 +343,62 @@ Board = []
 Board.append(Starting_Domino(stock[0]))
 stock = stock[1:]
 
-for i in range(0,1):
+i = 0
+while hand1.shape[0] > 0 and hand2.shape[0] > 0:
+    
+    print_game_situations(hand1, hand2, Board)
     
     if i%2 == 0:
+        player = 1
         current_hand = hand1
     else:
+        player = 2
         current_hand = hand2
     
-    
-    print("\n# Values of the game :")
-    print(hand1)
-    print(hand2)
-    print(Board)
-    print("\n### Test ###")
-    
-    possibilities = show_possibilities(current_hand, Board)
-    print("# parents_free :")
-    print(possibilities[0])
-    print("# possibilities :")
-    print(possibilities[1])
-    
-    print("# play chosen : (domino, parent)")
-    play = choose_play_random(possibilities[1])
-    print(play)
-    
+    #######################" DESCISIONS
+    parent_free_on_board, possibles = show_possibilities(current_hand, Board)
+    # print("\n# parents_free :")
+    # for elem in parent_free_on_board:
+    #     print(elem)
+    # print("# possibilities :")
+    # for elem in possibles:
+    #     print(elem)
+
+    ## Choose among the possibilities
+    play = choose_play_random(possibles)
+
+    print("\n#########################################")
     if play == False:
-        print("No play available... you draw LOL")
-        if i%2 == 0:
-            hand1, stock = draw(hand1, stock)
-        else:
-            hand2, stock = draw(hand2, stock)
+        print("No play available for the player "+str(player))
+        if stock.shape[0] > 0 :
+            if i%2 == 0:
+                print("The player draws")
+                hand1, stock = draw(hand1, stock)
+            else:
+                print("The player draws")
+                hand2, stock = draw(hand2, stock)
     else :
+        print("The player " + str(player) + " plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
+        
         dom = play_this_domino(play[0], play[1])
         Board.append(dom)
-        print("The player play "+str(dom)+" on this domino of the board "+str(play[1]))
+        
+        # Refresh the hands
         if i%2 == 0:
-            hand1, stock = draw(hand1, stock)
-            remove_from(hand1, dom.name)
+            hand1 = remove_from(hand1, dom.name)
+            if stock.shape[0] > 0 :
+                hand1, stock = draw(hand1, stock)
         else:
-            hand2, stock = draw(hand2, stock)
-            remove_from(hand1, dom.name)
-    
-    input("Press Enter to continue...")
+            hand2 = remove_from(hand2, dom.name)
+            if stock.shape[0] > 0 :
+                hand2, stock = draw(hand2, stock)
+    print("#########################################")
+
+    i += 1
+    input("[INFO] Press for next turn...")
+
+print("\n #### Game finished ####")
+print_results(hand1, hand2)
 
 
 
