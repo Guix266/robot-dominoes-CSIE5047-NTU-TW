@@ -30,8 +30,8 @@ def choose_rand_centroids(blob, k):
     return np.array(rand_coor)
 
 
-def generate_templates(area, ratio=1.85, num=24):
-    templates = []
+def create_template(area, ratio=1.85):
+    """create the basic pattern of a domino"""
     w = int(round(min(np.sqrt(area/ratio), np.sqrt(area*ratio))))
     h = int(round(max(np.sqrt(area/ratio), np.sqrt(area*ratio))))
     diag = int(round(np.sqrt(w**2 + h**2)))
@@ -45,6 +45,12 @@ def generate_templates(area, ratio=1.85, num=24):
     y_max = origin[1] + w//2 + w%2
     templ_simple = np.zeros((diag, diag), dtype='uint8')
     templ_simple[x_min:x_max, y_min:y_max] = 1
+    return(templ_simple, origin, diag)
+
+
+def generate_templates(templ_simple, origin, diag, num=24):
+    """Reproduce the templates with rotations"""
+    templates = []
     # find the center of the matrix
     for i in range(num):
         phi = 2 * np.pi / num * i
@@ -94,7 +100,9 @@ def segment(img, N, threshold=70000):
     # label all shapes in the image
     (img, m) = label(img)
     # generate a list of rotated dominoes for template matching
-    templates = generate_templates(tile_area, num=40)
+    (templ_simple, origin, diag) = create_template(tile_area, ratio=1.85)
+    plt.imshow(templ_simple)
+    templates = generate_templates(templ_simple, origin, diag, num=40)
     # approx width and height of a domino
     w = int(round(min(np.sqrt(tile_area / ratio), np.sqrt(tile_area * ratio))))
     h = int(round(max(np.sqrt(tile_area / ratio), np.sqrt(tile_area * ratio))))
@@ -235,8 +243,8 @@ axIm[1].imshow(bwImg[displayID], cmap='binary')
 axIm[1].set_title('Bitmap image')
 axIm[2].imshow(edgeImg[displayID], cmap='binary')
 axIm[2].set_title('Canny edges')
-#coordinates = np.array(segment(bwImg[displayID], N))
-#axIm[1].plot(coordinates[:, 1], coordinates[:, 0], 'rx')
+coordinates = np.array(segment(bwImg[displayID], N))
+axIm[1].plot(coordinates[:, 1], coordinates[:, 0], 'rx')
 
 
 for ax in axIm:
