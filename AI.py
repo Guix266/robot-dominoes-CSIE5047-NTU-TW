@@ -241,7 +241,7 @@ def play_this_domino(name, parent):
 def show_possibilities(hand, board):
     """ Return the play possibles corresponding to a hand :
         the name of the tilts in the hand, the futur parent, the corresponding number
-        format : list(name, parent, number)"""
+        format : list(name, parent, number, side of connection along the parent)"""
     
     # Get the parent that still have children added
     parent_free_on_board = []
@@ -250,18 +250,21 @@ def show_possibilities(hand, board):
         if type(domino.children) == str: 
             if domino.children == "empty" :
                 num =  domino.north
+                side = "North"
                 if [domino, num] not in parent_free_on_board:
-                        parent_free_on_board.append([domino, num])
+                        parent_free_on_board.append([domino, num, side])
         # case where several children
         else:
             for i in range(0,len(domino.children)):
                 if domino.children[i] == "empty" :
                     if i == 1:  #for the case parent==starting_domino
                         num = domino.south
+                        side = "South"
                     else:
                         num = domino.north
+                        side = "North"
                     if [domino, num] not in parent_free_on_board:
-                        parent_free_on_board.append([domino, num])
+                        parent_free_on_board.append([domino, num, side])
     
     # Get the dominoes that can be added to the parent
     possibles = []
@@ -317,6 +320,23 @@ def choose_play_random(possibles):
         #play = possibles[0]
         return(play)
 
+def better_play(possibles):
+    """chose a good play:
+    Priority : 1 - play first the non joker tilts (keep them)
+    
+        """
+    if len(possibles)==0:
+        return(False)
+    else:
+        no_joker = []
+        for poss in possibles:
+            if poss[2] != 0:
+                no_joker.append(poss)
+            # elif poss[1].north == 0 or poss[1].south
+        return(play)
+    
+    
+    
     
 #######################################"
 
@@ -360,9 +380,9 @@ while hand1.shape[0] > 0 and hand2.shape[0] > 0:
     # print("\n# parents_free :")
     # for elem in parent_free_on_board:
     #     print(elem)
-    # print("# possibilities :")
-    # for elem in possibles:
-    #     print(elem)
+    print("# possibilities :")
+    for elem in possibles:
+        print(elem)
 
     ## Choose among the possibilities
     play = choose_play_random(possibles)

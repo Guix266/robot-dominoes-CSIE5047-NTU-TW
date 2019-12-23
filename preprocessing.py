@@ -251,3 +251,6 @@ for ax in axIm:
     ax.xaxis.set_ticks([])
     ax.yaxis.set_ticks([])
 
+# Output needed for a domino :
+    # [X,Y,name="12" or "21",angle of the vector] 
+    # The vector is defined from the small to the big number (or arbitrarly for 2 same numbers)
