@@ -250,21 +250,18 @@ def show_possibilities(hand, board):
         if type(domino.children) == str: 
             if domino.children == "empty" :
                 num =  domino.north
-                side = "North"
                 if [domino, num] not in parent_free_on_board:
-                        parent_free_on_board.append([domino, num, side])
+                        parent_free_on_board.append([domino, num])
         # case where several children
         else:
             for i in range(0,len(domino.children)):
                 if domino.children[i] == "empty" :
                     if i == 1:  #for the case parent==starting_domino
                         num = domino.south
-                        side = "South"
                     else:
                         num = domino.north
-                        side = "North"
                     if [domino, num] not in parent_free_on_board:
-                        parent_free_on_board.append([domino, num, side])
+                        parent_free_on_board.append([domino, num])
     
     # Get the dominoes that can be added to the parent
     possibles = []
@@ -320,24 +317,54 @@ def choose_play_random(possibles):
         #play = possibles[0]
         return(play)
 
+def biggest_cost_domino(possibles):
+    """take in arg a list of possibilities and return the biggest cost domino""" 
+    cost = int(possibles[0][0][0]) + int(possibles[0][0][1])
+    domino = possibles[0]
+    for dom in possibles[1:]:
+        c = int(dom[0][0]) + int(dom[0][1])
+        if c > cost:
+            cost = c
+            domino = dom
+    return(domino)
+
+def doubles(possibles):
+    """take in arg a list of possibilities and return the list of the doubles dominoes""" 
+    double =[]
+    for dom in possibles:
+        if int(dom[0][0]) == int(dom[0][1]):
+            double.append(dom)
+    return(double)
+
 def better_play(possibles):
     """chose a good play:
     Priority : 1 - play first the non joker tilts (keep them)
-    
+               2 - Play doubles first (allows less flexibility)
+               3 - play high numbers first (get rid of malus)
         """
     if len(possibles)==0:
         return(False)
     else:
+        ### Separate the dominoes that don't connect with 0 first
+        joker = []
         no_joker = []
         for poss in possibles:
-            if poss[2] != 0:
+            if int(poss[0][0])!=0 and int(poss[0][1])!=0:
                 no_joker.append(poss)
-            # elif poss[1].north == 0 or poss[1].south
-        return(play)
-    
-    
-    
-    
+            else:
+                joker.append(poss)
+        # first we work on no_joker
+        if no_joker != []:
+            double = doubles(no_joker)
+            if double != []:
+                return(biggest_cost_domino(double))
+            else:
+                return(biggest_cost_domino(no_joker))
+        # and then on joker
+        else:
+            return(biggest_cost_domino(joker))
+
+
 #######################################"
 
 """Start a dominoes game with m tilts par hand"""
@@ -365,7 +392,7 @@ stock = stock[1:]
 
 i = 0
 while hand1.shape[0] > 0 and hand2.shape[0] > 0:
-    
+#for i in range(0,3):   
     print_game_situations(hand1, hand2, Board)
     
     if i%2 == 0:
@@ -377,15 +404,15 @@ while hand1.shape[0] > 0 and hand2.shape[0] > 0:
     
     #######################" DESCISIONS
     parent_free_on_board, possibles = show_possibilities(current_hand, Board)
-    # print("\n# parents_free :")
-    # for elem in parent_free_on_board:
-    #     print(elem)
+    print("\n# parents_free :")
+    for elem in parent_free_on_board:
+        print(elem)
     print("# possibilities :")
     for elem in possibles:
         print(elem)
 
     ## Choose among the possibilities
-    play = choose_play_random(possibles)
+    play = better_play(possibles)
 
     print("\n#########################################")
     if play == False:
