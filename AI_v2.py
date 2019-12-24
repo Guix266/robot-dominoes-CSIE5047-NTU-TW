@@ -17,9 +17,7 @@ class Domino():
     def __init__(self, name):
         """Name char exemple : "11","42", ..."""
         self.name = name
-        # self.position_x = position_x
-        # self.position_y = position_y
-
+      
         if int(name[0])==int(name[1]):
             self.dom_type = "double"
         else:
@@ -129,7 +127,48 @@ class Domino_on_board(Domino):
                     self.north = int(name[0])
                 else:
                     raise Exception("The dominos are not compatibles!")
-                    
+        
+        # angle :
+        if self.dom_type == "double":
+            self.angle = self.parent.angle + 90
+        else:
+            if position == S:
+                if self.south > self.north:
+                    if self.parent.south < self.parent.north:
+                        self.angle = self.parent.angle
+                    else:
+                        self.angle = self.parent.angle + 180
+                else:
+                    if self.parent.south < self.parent.north:
+                        self.angle = self.parent.angle + 180
+                    else:
+                         self.angle = self.parent.angle
+            else:
+                 if self.south > self.north:
+                     if self.parent.south < self.parent.north:
+                         self.angle = self.parent.angle + 180
+                     else:
+                         self.angle = self.parent.angle
+                 else:
+                     if self.parent.south < self.parent.north:
+                         self.angle = self.parent.angle
+                     else:
+                         self.angle = self.parent.angle + 180
+                             
+                                 
+        # Coordinates
+        if self.dom_type == "double":
+            length_child = 26
+        else:
+            length_child = 13
+        if position == E or position == W:
+            lenght_parent =13
+        else:
+            lenght_parent = 26    
+        self.x = self.parent.x + (length_child + lenght_parent)*np.cos(self.angle)
+        self.y = self.parent.y + (length_child + lenght_parent)*np.sin(self.angle)
+
+
         #Add the child in the parent list
         self.addChild_to_parent(position)
 
@@ -143,11 +182,16 @@ class Domino_on_board(Domino):
 
 
 class Starting_Domino(Domino):
-    def __init__(self, name):
+    def __init__(self, name, start_X, start_Y, start_angle):
         # create the domino
         Domino.__init__(self, name)
         self.north = int(name[0])
         self.south = int(name[1])
+        
+        # Coordinates
+        self.x = start_X
+        self.y = start_Y
+        self.angle = start_angle
     
         #Add the domino to the list of dominoes on the board
         if self.name in Domino.board:
@@ -387,7 +431,7 @@ stock = dominoes[2*m:]
 
 #Place the first domino on the board from the stock
 Board = []
-Board.append(Starting_Domino(stock[0]))
+Board.append(Starting_Domino(stock[0], 290, 0, 90))
 stock = stock[1:]
 
 i = 0
