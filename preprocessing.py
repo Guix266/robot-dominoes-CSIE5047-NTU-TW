@@ -8,6 +8,16 @@ import cv2 as cv
 import os
 
 def fill_holes(img):
+    """
+    Fills holes in a binary image
+    Parameters
+    ----------
+    img - binary image
+
+    Returns
+    -------
+    A copy of the image with filled holes
+    """
     imageCopy = img.copy()
     h, w = img.shape[:2]
     mask = np.zeros((h+2, w+2), np.uint8)
@@ -30,8 +40,11 @@ def choose_rand_centroids(blob, k):
     return np.array(rand_coor)
 
 
-def create_template(area, ratio=1.85):
-    """create the basic pattern of a domino"""
+def create_rect_template(area, ratio=1.85):
+    """
+    Creates an image of a rectangle shape with h:w = ratio to use it as a template for pattern matching.
+    The image size is large enough to fit every possible rotation of the rectangle about the center.
+    """
     w = int(round(min(np.sqrt(area/ratio), np.sqrt(area*ratio))))
     h = int(round(max(np.sqrt(area/ratio), np.sqrt(area*ratio))))
     diag = int(round(np.sqrt(w**2 + h**2)))
@@ -48,35 +61,102 @@ def create_template(area, ratio=1.85):
     return(templ_simple, origin, diag)
 
 
-def generate_templates(templ_simple, origin, diag, num=24):
-    """Reproduce the templates with rotations"""
+def generate_rot_templates(templ_simple, origin, start=0, end=2*np.pi, num=24, fill=True):
+    """
+    Generates a list of rotated templates for pattern matching
+
+    Parameters
+    ----------
+    templ_simple : uint8 2D-array
+        A square grayscale template
+    origin : np.array([int, int])
+        Coordinates of the rotation point
+    start : float
+        Starting angle
+    end : float
+        Final angle
+    num : int
+        Number of rotated templates
+
+    Returns
+    -------
+    A list of num rotated templates
+    """
     templates = []
+    size = templ_simple.shape[0]
     # find the center of the matrix
     for i in range(num):
-        phi = 2 * np.pi / num * i
+        phi = start + (end - start) / num * i
         rot = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
-        templ = np.zeros((diag, diag), dtype='uint8')
-        for x in range(diag):
-            for y in range(diag):
-                if templ_simple[x, y] == 1:
+        templ = np.zeros((size, size), dtype='uint8')
+        for x in range(size):
+            for y in range(size):
+                if templ_simple[x, y] > 0:
                     xn, yn = rot.dot(np.array([x, y]) - origin) + origin
                     xn = int(round(xn, 0))
                     yn = int(round(yn, 0))
                     try:
-                        templ[xn, yn] = 1
+                        templ[xn, yn] = templ_simple[x, y]
                     except IndexError:
                         continue
         # add an empty line at every border to fill the holes
-        temp = np.zeros((diag + 2, diag + 2), dtype='uint8')
+        temp = np.zeros((size + 2, size + 2), dtype='uint8')
         temp[1:-1, 1:-1] = templ
-        temp = fill_holes(temp)
+        if fill:
+            temp = fill_holes(temp)
         templates.append(temp)
     return templates
+
+def match_domino(img, coor, tile_area):
+    templ_tile_area = 11440 # the area of a 00 domino
+    scale_ratio = np.sqrt(tile_area/templ_tile_area)
+    phi = coor[2]
+    delta_phi = np.pi/30
+    #delta_phi = 0
+    best_match = 0
+    dom_results = {}
+    img = img*255/np.max(img)
+    # for i in range(7):
+    for i in [5, ]:
+        # for j in range(i+1):
+        for j in [1, ]:
+            domino_img = cv.imread("domino_templ/%i%i.png" %(j, i))
+            domino_img = cv.cvtColor(domino_img, cv.COLOR_BGR2GRAY)
+            domino_img = cv.resize(domino_img, (int(domino_img.shape[0]*scale_ratio),
+                                                int(domino_img.shape[1]*scale_ratio)))
+            domino_img * 255 / domino_img.max()
+            origin = np.array(domino_img.shape, dtype=int)//2
+            templ_rot = generate_rot_templates(domino_img,
+                                               origin,
+                                               phi - delta_phi,
+                                               phi + delta_phi,
+                                               num=3, fill=False)
+            templ_rot_rev = generate_rot_templates(domino_img,
+                                                   origin,
+                                                   np.pi + (phi - delta_phi),
+                                                   np.pi + (phi + delta_phi),
+                                                   num=3, fill=False)
+            for templ in templ_rot + templ_rot_rev:
+                matching_result = cv.matchTemplate(np.asarray(img, dtype='float32'),
+                                                   np.asarray(templ, dtype='float32'),
+                                                   method=cv.TM_CCORR)
+
+                if (best_match < np.max(matching_result)):
+                    best_match = np.max(matching_result)
+                    best_matching_result = matching_result
+                    best_dom = "%i%i" %(i, j)
+                    best_templ = templ
+                    (xopt, yopt) = np.unravel_index(np.argmax(best_matching_result, axis=None),
+                                                    best_matching_result.shape)
+                print("%i%i : %f" % (i, j, np.max(matching_result)))
+    return best_dom, (xopt, yopt), best_matching_result, best_templ
 
 
 
 def segment(img, N, threshold=70000):
     """
+    Attempts to segment a binary image into single rectangular dominoes and determine their angle and coordinates.
+
     Parameters
     ----------
     img : binary array
@@ -84,12 +164,14 @@ def segment(img, N, threshold=70000):
     N : int
         Expected number of dominoes
     threshold : float
-        thresheld for template matching
+        threshold for template matching
 
     Returns
     -------
     coordinates : list
         A list of coordinates of the centroids and the rotation angle in radian with respect to the y-axis
+    tile_area : int
+        An approximate size of a single domino
     """
     # approx height to width ratio of a domino
     ratio = 1.85
@@ -100,9 +182,9 @@ def segment(img, N, threshold=70000):
     # label all shapes in the image
     (img, m) = label(img)
     # generate a list of rotated dominoes for template matching
-    (templ_simple, origin, diag) = create_template(tile_area, ratio=1.85)
+    (templ_simple, origin, diag) = create_rect_template(tile_area, ratio=2)
     plt.imshow(templ_simple)
-    templates = generate_templates(templ_simple, origin, diag, num=40)
+    templates = generate_rot_templates(templ_simple, origin, num=40)
     # approx width and height of a domino
     w = int(round(min(np.sqrt(tile_area / ratio), np.sqrt(tile_area * ratio))))
     h = int(round(max(np.sqrt(tile_area / ratio), np.sqrt(tile_area * ratio))))
@@ -153,8 +235,8 @@ def segment(img, N, threshold=70000):
                 # angle of rotation of the template
                 phi = 2*np.pi/len(templates)*k
                 # save approximate coordinates of the centroid
-                xb = xopt + templates[0].shape[0] // 2
-                yb = yopt + templates[0].shape[1] // 2
+                xb = int(xopt + templates[0].shape[0] // 2)
+                yb = int(yopt + templates[0].shape[1] // 2)
                 approx_coordinates.append([xb, yb, phi])
                 # subtract the best matching template from the blob
                 best_templ = templates[k]
@@ -165,17 +247,19 @@ def segment(img, N, threshold=70000):
                 blob_area = np.sum(blob) / np.max(blob)
             # TODO: do some processing on approx_coordinates
             coordinates += approx_coordinates
-    return coordinates
+    return (coordinates, tile_area)
             
     
 # load images
-folder = "images"
-images = []
-for filename in os.listdir(folder):
-    img = cv.imread(os.path.join(folder,filename))
-    if img is not None:
-        images.append(img)
+# folder = "images"
+# images = []
+# for filename in os.listdir(folder):
+#     img = cv.imread(os.path.join(folder, filename))
+#     if img is not None:
+#         images.append(img)
+
 bwImg = []
+binaryImg = []
 edgeImg = []
 colorImg = []   
 contoursAll = []
@@ -198,7 +282,7 @@ for i in range(len(images)):
     img = np.asarray(img, dtype="uint8" )
     # turn image to grayscale
     bw = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    bw = cv.GaussianBlur(bw, (0,0), 2)
+    # bw = cv.GaussianBlur(bw, (0, 0), 2)
     # set background to black
     (thres, bw) = cv.threshold(bw, 70, 255, cv.THRESH_TOZERO)
     # canny edge 
@@ -206,12 +290,12 @@ for i in range(len(images)):
     # bw = cv.adaptiveThreshold(bw, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
     #                            cv.THRESH_BINARY,101,2)
     # binary image
-    (thres, bw) = cv.threshold(bw,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+    (thres, binary) = cv.threshold(bw, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
     # fill the contours
     # issue: fills background enclosed by dominoes
-    bw = fill_holes(bw)
-    bw_small = cv.resize(bw, dsize=(50, int(266*0.25)))
-    (im2, contours, hierarchy) = cv.findContours(bw, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    binary = fill_holes(binary)
+    binary_small = cv.resize(binary, dsize=(50, int(266*0.25)))
+    (im2, contours, hierarchy) = cv.findContours(binary, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     dominoContours = []
     for cont in contours:
         if (cv.contourArea(cont) > 400
@@ -224,30 +308,55 @@ for i in range(len(images)):
             box = np.int0(box)
             cv.drawContours(img, [box], 0, (0, 0, 255), 2)
             # check for the color?
+
     # cv.drawContours(img, dominoContours, -1, (0,200,0), 1)
     bwImg.append(bw)
+    binaryImg.append(binary)
     edgeImg.append(edge)
     colorImg.append(img)
     contoursAll.append(dominoContours)
-    # axBw[i//6, i%6].imshow(bw, cmap='binary')
+    # axBw[i//6, i%6].imshow(binary, cmap='binary')
     # axEdge[i//6, i%6].imshow(edge, cmap='binary')
+
+
     
 
 # display one image on a large axis for further examination
-displayID = 11
+displayID = 12
 N = 12
 # axIm[0].imshow(edgeImg[displayID], cmap='binary')
-axIm[0].imshow(colorImg[displayID])
+axIm[0].imshow(bwImg[displayID], cmap='binary')
 axIm[0].set_title(r'Starting image')
-axIm[1].imshow(bwImg[displayID], cmap='binary')
+axIm[1].imshow(binaryImg[displayID], cmap='binary')
 axIm[1].set_title('Bitmap image')
 axIm[2].imshow(edgeImg[displayID], cmap='binary')
 axIm[2].set_title('Canny edges')
-coordinates = np.array(segment(bwImg[displayID], N))
-axIm[1].plot(coordinates[:, 1], coordinates[:, 0], 'rx')
 
+coordinates, tile_area = segment(binaryImg[displayID], N)
+axIm[1].plot(np.array(coordinates)[:, 1], np.array(coordinates)[:, 0], 'rx')
 
 for ax in axIm:
     ax.xaxis.set_ticks([])
     ax.yaxis.set_ticks([])
 
+segmentSize = int(np.sqrt(tile_area)*2)
+
+for coor in coordinates:
+    segmentVert = [max(coor[0] - segmentSize//2, 0), min(coor[0] + segmentSize//2, 266),
+                   max(coor[1] - segmentSize//2, 0), min(coor[1] + segmentSize//2, 200)]
+    imSegment = bwImg[displayID][segmentVert[0]:segmentVert[1],
+                                 segmentVert[2]:segmentVert[3]]
+    imSegment = np.where(imSegment > 120, imSegment, 0)
+    # imSegment = imSegment * 255. / np.max(imSegment)
+    segmentCoor = [coor[0] - segmentVert[0], coor[1] - segmentVert[2], coor[2]]
+    best_dom, (xopt, yopt), result, templ = match_domino(imSegment, segmentCoor, tile_area)
+
+# fig, ax = plt.subplots(1, 3, dpi=300)
+ax[0].imshow(imSegment)
+
+templIm = np.zeros(imSegment.shape)
+templIm[xopt:xopt+templ.shape[0], yopt:yopt+templ.shape[1]] = templ
+
+ax[1].imshow(templIm)
+
+ax[2].imshow(templIm*imSegment)
