@@ -395,3 +395,8 @@ ax[1].imshow(templIm)
 #axia.plot(x, dom_result, 'rs')
 
 
+#=======
+# Output needed for a domino :
+    # [X,Y,name="12" or "21",angle of the vector]
+    # The vector is defined from the small to the big number (or arbitrary for 2 same numbers)
+
