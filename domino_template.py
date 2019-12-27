@@ -13,17 +13,17 @@ import os
 folder = "domino_templ"
 base_images = []
 final_images = []
-for i in range(1, 7):
+for i in range(0, 7):
     img = cv.imread(os.path.join(folder, "base/%i.png" %i))
     if img is not None:
-        img = img[:, :, 0]
+        img = img[:, :, 1]
         base_images.append(img)
-        final_images.append(img)
-        imsave(folder + '/0%i.png' %i, 255 - img, cmap='binary')
+        #imsave(folder + '/0%i.png' %i, img)
 
-for i in range(6):
+for i in range(7):
     for j in range(i + 1):
         upper_half = base_images[i][:, :]
-        lower_half = base_images[j][::-1, :]
-        img = np.asarray(np.minimum(upper_half, lower_half), dtype='uint8')
-        imsave(folder + '/%i%i.png' % (j+1, i+1), 255 - img, cmap='binary')
+        lower_half = base_images[j][::-1, ::-1]
+        img = np.vstack((upper_half[:100, :], lower_half[100:, :]))
+        imsave(folder + '/%i%i.png' % (j, i), 255 - img, cmap='binary')
+
