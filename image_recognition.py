@@ -57,11 +57,22 @@ def create_rect_template(area, ratio=1.85):
     y_min = origin[1] - w//2
     y_max = origin[1] + w//2 + w%2
     templ_simple = np.zeros((diag, diag), dtype='uint8')
-    templ_simple[x_min:x_max, y_min:y_max] = 1
+    templ_simple[x_min:x_max, y_min:y_max] = 255
     return(templ_simple, origin, diag)
 
 
-def generate_rot_templates(templ_simple, origin, start=0, end=2*np.pi, num=24, fill=True):
+def generate_rot_templates(templ_simple, start=0, end=2*np.pi, num=24):
+    templates = []
+    origin = tuple(np.array(templ_simple.shape[1::-1]) / 2)
+    for i in range(num):
+        phi = start + (end - start) / num * i
+        rot_mat = cv.getRotationMatrix2D(origin, 180*phi/np.pi, 1.0)
+        result = cv.warpAffine(templ_simple, rot_mat, templ_simple.shape[1::-1], flags=cv.INTER_LINEAR)
+        templates.append(result)
+    return templates
+
+
+def generate_rot_templates_old(templ_simple, origin, start=0, end=2*np.pi, num=24, fill=True):
     """
     Generates a list of rotated templates for pattern matching
 
@@ -127,33 +138,32 @@ def match_domino(img, coor, tile_area):
     domino_mask = cv.resize(domino_mask, (int(domino_mask.shape[0] * scale_ratio),
                                           int(domino_mask.shape[1] * scale_ratio)))
     img = img*255/np.max(img)
+    origin = np.array(domino_mask.shape, dtype=int) // 2
+    templ_mask = generate_rot_templates(domino_mask,
+                                        phi - delta_phi,
+                                        phi + delta_phi,
+                                        num=1)
+    templ_mask_rev = generate_rot_templates(domino_mask,
+                                            -np.pi + phi - delta_phi,
+                                            -np.pi + phi + delta_phi,
+                                            num=1)
+
     for i in range(7):
         for j in range(i+1):
-            domino_img = cv.imread("domino_templ/%i%i.png" %(j, i))
+            domino_img = cv.imread("domino_templ/%i%i.png" % (j, i))
             domino_img = domino_img[:, :, 1]
             domino_img = cv.resize(domino_img, (int(domino_img.shape[0]*scale_ratio),
                                                 int(domino_img.shape[1]*scale_ratio)))
-            origin = np.array(domino_img.shape, dtype=int)//2
+
             templ_rot = generate_rot_templates(domino_img,
-                                               origin,
                                                phi - delta_phi,
                                                phi + delta_phi,
-                                               num=1, fill=False)
-            templ_mask = generate_rot_templates(domino_mask,
-                                                origin,
-                                                phi - delta_phi,
-                                                phi + delta_phi,
-                                                num=1, fill=False)
+                                               num=1)
+
             templ_rot_rev = generate_rot_templates(domino_img,
-                                                   origin,
                                                    -np.pi + (phi - delta_phi),
                                                    -np.pi + (phi + delta_phi),
-                                                   num=1, fill=False)
-            templ_mask_rev = generate_rot_templates(domino_mask,
-                                                    origin,
-                                                    -np.pi + phi - delta_phi,
-                                                    -np.pi + phi + delta_phi,
-                                                    num=1, fill=False)
+                                                   num=1)
             for k in range(len(templ_rot) + len(templ_rot_rev)):
                 templ = (templ_rot + templ_rot_rev)[k]
                 mask = (templ_mask + templ_mask_rev)[k]
@@ -204,7 +214,7 @@ def find_rectangles(img, N, threshold=70000):
     (img, m) = label(img)
     # generate a list of rotated dominoes for template matching
     (templ_simple, origin, diag) = create_rect_template(tile_area, ratio=2)
-    templates = generate_rot_templates(templ_simple, origin, start=0, end=np.pi, num=30)
+    templates = generate_rot_templates(templ_simple, start=0, end=np.pi, num=30)
     # approx width and height of a domino
     w = int(round(min(np.sqrt(tile_area / ratio), np.sqrt(tile_area * ratio))))
     h = int(round(max(np.sqrt(tile_area / ratio), np.sqrt(tile_area * ratio))))
@@ -250,7 +260,8 @@ def find_rectangles(img, N, threshold=70000):
                 # find the best result
                 (xopt, yopt, k) = np.unravel_index(np.argmax(best_match, axis=None), best_match.shape)
                 if xopt == 0 and yopt == 0:
-                    print("Can't find any other tiles!")
+                    print("The area of the blob is still larger than the expected area of a domino")
+                    print("but I can't find any other rectangles.")
                     break
                 # angle of rotation of the template
                 phi = np.pi/len(templates)*k
@@ -391,7 +402,7 @@ if __name__ == '__main__':
         colorImg.append(img)
 
     # display one image on a large axis for further examination
-    displayID = 4
+    displayID = 3
     N = 12
 
     axIm[0].imshow(bwImg[displayID], cmap='binary')
@@ -418,26 +429,20 @@ if __name__ == '__main__':
         dom, (x, y, phi), certainty = result[i]
         axIm[2].text(x, y, dom)
 
-
-    #fig, ax = plt.subplots(1, 3, dpi=300)
-    #ax[0].imshow(imSegment)
-
-    #templIm = np.zeros(imSegment.shape)
-    #templIm[xopt:xopt+templ.shape[0], yopt:yopt+templ.shape[1]] = templ
-
-    #ax[1].imshow(templIm)
-
-    #x = ['%i%i' % (i, j)  for i in range(7) for j in range(i+1) for k in range(2)]
-    #figia, axia = plt.subplots(1, 1, dpi=300)
-    #try:
+    #
+    # fig, ax = plt.subplots(1, 3, dpi=300)
+    # ax[0].imshow(segment)
+    #
+    # templIm = np.zeros(segment.shape)
+    # templIm[xopt:xopt+templ.shape[0], yopt:yopt+templ.shape[1]] = templ
+    #
+    # ax[1].imshow(templIm)
+    #
+    # x = ['%i%i' % (i, j)  for i in range(7) for j in range(i+1) for k in range(2)]
+    # figia, axia = plt.subplots(1, 1, dpi=300)
+    # try:
     #    axia.lines[0].remove()
-    #except IndexError:
+    # except IndexError:
     #    pass
-    #axia.plot(x, dom_result, 'rs')
-
-
-    #=======
-    # Output needed for a domino :
-        # [X,Y,name="12" or "21",angle of the vector]
-        # The vector is defined from the small to the big number (or arbitrary for 2 same numbers)
-
+    # axia.plot(x, dom_result, 'rs')
+    #
