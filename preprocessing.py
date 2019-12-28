@@ -21,23 +21,23 @@ def fill_holes(img):
     imageCopy = img.copy()
     h, w = img.shape[:2]
     mask = np.zeros((h+2, w+2), np.uint8)
-    cv.floodFill(imageCopy, mask, (0,0), 255);
+    cv.floodFill(imageCopy, mask, (0, 0), 255);
     imageCopy = cv.bitwise_not(imageCopy)
     result = img | imageCopy
     return result
 
-def choose_rand_centroids(blob, k):
-    blob_area = np.sum(blob)
-    rand_ind = np.random.choice(blob_area, k)
-    rand_coor = []
-    m = 0
-    for i in range(blob.shape[0]):
-        for j in range(blob.shape[1]):
-            if blob[i, j] == True:
-                m += 1
-                if m in rand_ind:
-                    rand_coor.append((i, j))
-    return np.array(rand_coor)
+# def choose_rand_centroids(blob, k):
+#     blob_area = np.sum(blob)
+#     rand_ind = np.random.choice(blob_area, k)
+#     rand_coor = []
+#     m = 0
+#     for i in range(blob.shape[0]):
+#         for j in range(blob.shape[1]):
+#             if blob[i, j] == True:
+#                 m += 1
+#                 if m in rand_ind:
+#                     rand_coor.append((i, j))
+#     return np.array(rand_coor)
 
 
 def create_rect_template(area, ratio=1.85):
@@ -111,6 +111,11 @@ def generate_rot_templates(templ_simple, origin, start=0, end=2*np.pi, num=24, f
 
 
 def match_domino(img, coor, tile_area):
+    best_dom = None
+    xopt, yopt, best_phi = (0, 0, 0)
+    best_matching_result = 0
+    best_templ = None
+
     templ_tile_area = 11440 # the area of a 00 domino
     scale_ratio = np.sqrt(tile_area/templ_tile_area)
     phi = coor[2]
@@ -155,20 +160,18 @@ def match_domino(img, coor, tile_area):
                     best_phi = phi + np.pi*k
                     best_match = np.max(matching_result)
                     best_matching_result = matching_result
-                    best_dom = "%i%i" %(i, j)
+                    best_dom = "%i%i" % (i, j)
                     best_templ = templ
                     (xopt, yopt) = np.unravel_index(np.argmax(best_matching_result, axis=None),
                                                     best_matching_result.shape)
-                #print("%i%i : %f" % (i, j, np.max(matching_result)))
-                dom_results.append(np.max(matching_result))
+                dom_results.append(['%i%i' % (i, j), best_match])
 
-    return best_dom, (xopt, yopt, best_phi), best_matching_result, best_templ, dom_results
-
+    return best_dom, (xopt, yopt, best_phi), best_match, best_templ, dom_results
 
 
-def segment(img, N, threshold=70000):
+def find_rectangles(img, N, threshold=70000):
     """
-    Attempts to segment a binary image into single rectangular dominoes and determine their angle and coordinates.
+    Segments a binary image into single rectangular dominoes and determines their angle and coordinates.
 
     Parameters
     ----------
@@ -182,7 +185,7 @@ def segment(img, N, threshold=70000):
     Returns
     -------
     coordinates : list
-        A list of coordinates of the centroids and the rotation angle in radian with respect to the y-axis
+        A list of coordinates of the centroids and the rotation angle in radian with respect to the image y-axis
     tile_area : int
         An approximate size of a single domino
     """
@@ -259,144 +262,154 @@ def segment(img, N, threshold=70000):
                 blob_area = np.sum(blob) / np.max(blob)
             coordinates += approx_coordinates
     return (coordinates, tile_area)
-            
-    
-# load images
-folder = "frames"
-images = []
-for filename in os.listdir(folder):
-     img = cv.imread(os.path.join(folder, filename))
-     if img is not None:
-         images.append(img)
 
-bwImg = []
-binaryImg = []
-edgeImg = []
-colorImg = []   
-contoursAll = []
-areas = []
 
-# figEdge, axEdge = plt.subplots(5, 6, sharex=True, sharey=True, dpi=300)
-# figBw, axBw = plt.subplots(5, 6, sharex=True, sharey=True, dpi=300)
-figIm, axIm = plt.subplots(1, 3, dpi=300, sharex=True, sharey=True)
+def preprocessing(img):
+    """
+    Performs preprosessing on the starting image. Scales image down, sets background pixels to zero, darkens the dots.
+    Parameters
+    ----------
+    img : 3D array
+        Starting colorful image from the camera
 
-# preprocessing
-contrast = 1.0
-for i in range(len(images)):
-    img = images[i]
+    Returns
+    -------
+    bw : uint8 2D array
+        A grayscale copy of the image
+    binary : uint8 2D array
+        A binary image of the siluets of the dominos
+    edge : uint8 2D array
+        Canny edges of the grayscale image
+    img : uint8 2D array
+        A scaled down copy of the starting image with darkend colorful pixels
+    """
     img = cv.resize(img, (266, 200))
-    # change constrast
-    img = np.minimum(255*np.ones(img.shape), img*contrast)
     # make colorfull pixels darker
-    pixelStd = np.dstack((2*np.std(img, axis = 2), )*3)
+    pixelStd = np.dstack((2*np.std(img, axis=2), )*3)
     img = np.maximum(255*np.zeros(img.shape), img - pixelStd)
-    img = np.asarray(img, dtype="uint8" )
+    img = np.asarray(img, dtype="uint8")
     # turn image to grayscale
     bw = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     # bw = cv.GaussianBlur(bw, (0, 0), 2)
     # set background to black
     (thres, bw) = cv.threshold(bw, 70, 255, cv.THRESH_TOZERO)
-    # canny edge 
+    # canny edge
     edge = cv.Canny(bw, 200, 200)
-    # bw = cv.adaptiveThreshold(bw, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
-    #                            cv.THRESH_BINARY,101,2)
     # binary image
     (thres, binary) = cv.threshold(bw, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
     # fill the contours
     # issue: fills background enclosed by dominoes
     binary = fill_holes(binary)
 
-    # (im2, contours, hierarchy) = cv.findContours(binary, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-    # dominoContours = []
-    # for cont in contours:
-    #     if (cv.contourArea(cont) > 400
-    #         and cv.contourArea(cont) < 1800
-    #         and cv.isContourConvex):
-    #         dominoContours.append(cont)
-    #         areas.append(cv.contourArea(cont))
-    #         rect = cv.minAreaRect(cont)
-    #         box = cv.boxPoints(rect)
-    #         box = np.int0(box)
-    #         cv.drawContours(img, [box], 0, (0, 0, 255), 2)
-    #         # check for the color?
-    # cv.drawContours(img, dominoContours, -1, (0,200,0), 1)
-
-    bwImg.append(bw)
-    binaryImg.append(binary)
-    edgeImg.append(edge)
-    colorImg.append(img)
-    #contoursAll.append(dominoContours)
-
-    # axBw[i//6, i%6].imshow(binary, cmap='binary')
-    # axEdge[i//6, i%6].imshow(edge, cmap='binary')
+    return bw, binary, edge, img
 
 
-    
+def cut_segment(coor, seg_shape, img):
+    # make dimensions even
+    seg_shape = list(seg_shape)
+    seg_shape[0] += seg_shape[0] % 2
+    seg_shape[1] += seg_shape[1] % 2
+    segment = np.zeros(seg_shape)
+    img_shape = img.shape
+    im_vert = [max(coor[0] - seg_shape[0]//2, 0), min(coor[0] + seg_shape[0]//2, img_shape[0]),
+               max(coor[1] - seg_shape[1]//2, 0), min(coor[1] + seg_shape[1]//2, img_shape[1])]
+    seg_vert = [max(seg_shape[0]//2 - coor[0], 0), seg_shape[0] - max(seg_shape[0]//2 + coor[0] - img_shape[0], 0),
+                max(seg_shape[1]//2 - coor[1], 0), seg_shape[1] - max(seg_shape[1]//2 + coor[1] - img_shape[1], 0)]
 
-# display one image on a large axis for further examination
-displayID = 4
-N = 12
-# axIm[0].imshow(edgeImg[displayID], cmap='binary')
-axIm[0].imshow(bwImg[displayID], cmap='binary')
-axIm[0].set_title(r'Preprocessing')
-axIm[1].imshow(binaryImg[displayID], cmap='binary')
-axIm[1].set_title('Bitmap image')
-#axIm[2].imshow(np.zeros(binaryImg[0].shape), cmap='binary')
-axIm[2].set_title('Final model')
-
-coordinates, tile_area = segment(binaryImg[displayID], N)
-axIm[1].plot(np.array(coordinates)[:, 1], np.array(coordinates)[:, 0], 'rx')
-axIm[2].plot(np.array(coordinates)[:, 1], np.array(coordinates)[:, 0], 'rx')
-axIm[2].set_aspect('1')
-for coor in coordinates:
-    axIm[1].plot([coor[1] - 20*np.sin(coor[2]), coor[1] + 20*np.sin(coor[2])],
-                 [coor[0] - 20*np.cos(coor[2]), coor[0] + 20*np.cos(coor[2])], 'r-')
-
-for ax in axIm:
-    ax.xaxis.set_ticks([])
-    ax.yaxis.set_ticks([])
-
-segmentSize = int(np.sqrt(tile_area)*2.3)
-segmentSize += segmentSize % 2 # make even
-imSegment = np.zeros((segmentSize, segmentSize))
-
-for i in range(len(coordinates)):
-    coor = coordinates[i]
-    imVert = [max(coor[0] - segmentSize//2, 0), min(coor[0] + segmentSize//2, 200),
-              max(coor[1] - segmentSize//2, 0), min(coor[1] + segmentSize//2, 266)]
-    segVert = [max(0, segmentSize//2 - coor[0]), imSegment.shape[0] - max(0, segmentSize//2 + coor[0] - 200),
-               max(0, segmentSize//2 - coor[1]), imSegment.shape[1] - max(0, segmentSize//2 + coor[1] - 266)]
-
-    imSegment[segVert[0]:segVert[1], segVert[2]:segVert[3]] = bwImg[displayID][imVert[0]:imVert[1],
-                                                                               imVert[2]:imVert[3]]
-    imSegment = np.where(imSegment > 120, imSegment, 0)
-    imSegment = imSegment * 255. / np.max(imSegment)
-    #(thres, imSegment_thres) = cv.threshold(imSegment, 0, 255, cv.THRESH_BINARY)
-    segmentCoor = [coor[0] - imVert[0], coor[1] - imVert[2], coor[2]]
-    best_dom, (xopt, yopt, phi), result, templ, dom_result = match_domino(imSegment, segmentCoor, tile_area)
-
-    axIm[2].text(coor[1] + xopt, coor[0] + yopt, best_dom)
+    segment[seg_vert[0]:seg_vert[1], seg_vert[2]:seg_vert[3]] = img[im_vert[0]:im_vert[1],
+                                                                    im_vert[2]:im_vert[3]]
+    segment_coor = [coor[0] - im_vert[0], coor[1] - im_vert[2], coor[2]]
+    return segment, segment_coor
 
 
-fig, ax = plt.subplots(1, 3, dpi=300)
-ax[0].imshow(imSegment)
-
-templIm = np.zeros(imSegment.shape)
-templIm[xopt:xopt+templ.shape[0], yopt:yopt+templ.shape[1]] = templ
-
-ax[1].imshow(templIm)
-
-#x = ['%i%i' % (i, j)  for i in range(7) for j in range(i+1) for k in range(2)]
-#figia, axia = plt.subplots(1, 1, dpi=300)
-#try:
-#    axia.lines[0].remove()
-#except IndexError:
-#    pass
-#axia.plot(x, dom_result, 'rs')
+def find_dominoes(img, N):
+    (bw, binary, edge, img) = preprocessing(img)
+    coordinates, tile_area = find_rectangles(binary, N)
+    result = []
+    segmentSize = int(np.sqrt(tile_area) * 2.3)
+    for j in range(len(coordinates)):
+        coor = coordinates[j]
+        segment, segment_coor = cut_segment(coor, (segmentSize, segmentSize), bw)
+        segment = np.where(segment > 120, segment, 0)
+        best_dom, (xopt, yopt, phi), certainty, templ, dom_result = match_domino(segment, segment_coor, tile_area)
+        result.append([best_dom, (xopt + coor[1], yopt + coor[0], phi), certainty])
+    return result
 
 
-#=======
-# Output needed for a domino :
-    # [X,Y,name="12" or "21",angle of the vector]
-    # The vector is defined from the small to the big number (or arbitrary for 2 same numbers)
+if __name__ == '__main__':
+    # load images
+    folder = "frames"
+    images = []
+    for filename in os.listdir(folder):
+        img = cv.imread(os.path.join(folder, filename))
+        if img is not None:
+            images.append(img)
+
+    bwImg = []
+    binaryImg = []
+    edgeImg = []
+    colorImg = []
+
+    N = 12
+
+    figIm, axIm = plt.subplots(1, 3, dpi=300, sharex=True, sharey=True)
+
+    for i in range(len(images)):
+        img = images[i]
+        (bw, binary, edge, img) = preprocessing(img)
+        bwImg.append(bw)
+        binaryImg.append(binary)
+        edgeImg.append(edge)
+        colorImg.append(img)
+
+    # display one image on a large axis for further examination
+    displayID = 4
+    N = 12
+
+    axIm[0].imshow(bwImg[displayID], cmap='binary')
+    axIm[0].set_title(r'Preprocessing')
+    axIm[1].imshow(binaryImg[displayID], cmap='binary')
+    axIm[1].set_title('Bitmap image')
+    axIm[2].set_title('Final model')
+
+    coordinates, tile_area = find_rectangles(binaryImg[displayID], N)
+    axIm[1].plot(np.array(coordinates)[:, 1], np.array(coordinates)[:, 0], 'rx')
+    axIm[2].plot(np.array(coordinates)[:, 1], np.array(coordinates)[:, 0], 'rx')
+    axIm[2].set_aspect('1')
+    for coor in coordinates:
+        axIm[1].plot([coor[1] - 20*np.sin(coor[2]), coor[1] + 20*np.sin(coor[2])],
+                     [coor[0] - 20*np.cos(coor[2]), coor[0] + 20*np.cos(coor[2])], 'r-')
+
+    for ax in axIm:
+        ax.xaxis.set_ticks([])
+        ax.yaxis.set_ticks([])
+
+    result = find_dominoes(colorImg[displayID], N)
+
+    for i in range(len(result)):
+        dom, (x, y, phi), certainty = result[i]
+        axIm[2].text(x, y, dom)
+
+
+    #fig, ax = plt.subplots(1, 3, dpi=300)
+    #ax[0].imshow(imSegment)
+
+    #templIm = np.zeros(imSegment.shape)
+    #templIm[xopt:xopt+templ.shape[0], yopt:yopt+templ.shape[1]] = templ
+
+    #ax[1].imshow(templIm)
+
+    #x = ['%i%i' % (i, j)  for i in range(7) for j in range(i+1) for k in range(2)]
+    #figia, axia = plt.subplots(1, 1, dpi=300)
+    #try:
+    #    axia.lines[0].remove()
+    #except IndexError:
+    #    pass
+    #axia.plot(x, dom_result, 'rs')
+
+
+    #=======
+    # Output needed for a domino :
+        # [X,Y,name="12" or "21",angle of the vector]
+        # The vector is defined from the small to the big number (or arbitrary for 2 same numbers)
 
