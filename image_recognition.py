@@ -146,18 +146,23 @@ def match_domino(img, coor, tile_area):
                                                 num=1, fill=False)
             templ_rot_rev = generate_rot_templates(domino_img,
                                                    origin,
-                                                   np.pi + (phi - delta_phi),
-                                                   np.pi + (phi + delta_phi),
+                                                   -np.pi + (phi - delta_phi),
+                                                   -np.pi + (phi + delta_phi),
                                                    num=1, fill=False)
+            templ_mask_rev = generate_rot_templates(domino_mask,
+                                                    origin,
+                                                    -np.pi + phi - delta_phi,
+                                                    -np.pi + phi + delta_phi,
+                                                    num=1, fill=False)
             for k in range(len(templ_rot) + len(templ_rot_rev)):
                 templ = (templ_rot + templ_rot_rev)[k]
-                mask = templ_mask[0]
+                mask = (templ_mask + templ_mask_rev)[k]
                 matching_result = cv.matchTemplate(np.asarray(img, dtype='float32'),
                                                    np.asarray(templ, dtype='float32'),
                                                    method=cv.TM_CCORR_NORMED,
                                                    mask=np.asarray(mask, dtype='float32'))
                 if (best_match < np.max(matching_result)):
-                    best_phi = phi + np.pi*k
+                    best_phi = phi - np.pi*k
                     best_match = np.max(matching_result)
                     best_matching_result = matching_result
                     best_dom = "%i%i" % (i, j)
@@ -323,6 +328,29 @@ def cut_segment(coor, seg_shape, img):
 
 
 def find_dominoes(img, N):
+    """
+    Recognize dominoes in an image and determine their coordinates, number of points and rotation.
+    Parameters
+    ----------
+    img : 3D array
+        A colorful image from the camera
+    N : int
+        Expected number of dominoes in the imgage. Doesn't have to be exact
+
+    Returns
+    -------
+    result : list
+        A list of lists with each element containing the information about one domino: [domino, (x, y, phi), certainty]
+        domino : str
+            Has the format "32"
+        x, y : int
+            Pixel coordinates of the center of the domino
+        phi : float
+            The angle of a vector pointing from the half with lower number of points to the half with higher number.
+            Is defined with respect to the y-axis counterclockwise.
+        certainty : float
+            The template matching score, can be kinda used to judge how successful the template matching was
+    """
     (bw, binary, edge, img) = preprocessing(img)
     coordinates, tile_area = find_rectangles(binary, N)
     result = []
