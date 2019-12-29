@@ -325,32 +325,9 @@ def show_possibilities(hand, board):
                     
     return parent_free_on_board, possibles
 
-def remove_from(array_dom, string):
-    n=int(array_dom.shape[0])
-    i=0
-    while (i < n) and (array_dom[i] != string):
-        i = i+1
-    new = list(array_dom[0:i])+list(array_dom[i+1:n])
-    return(np.array(new))
 
-def print_game_situations(hand1, hand2, Board):
-    print("\n # Game :")
-    print("hand 1 : "+ str(hand1))
-    print("hand 2 : "+ str(hand2))
-    print("Dominoes on Board : "+ str(Board))
 
-def print_results(hand1, hand2):
-    score1 = 0
-    score2 = 0
-    for domino in hand1:
-        score1 += int(domino[0])
-        score1 += int(domino[1])
-    for domino in hand2:
-        score2 += int(domino[0])
-        score2 += int(domino[1])    
-    print("Player 1 gets "+str(score1)+" malus" )
-    print("Player 2 gets "+str(score2)+" malus" )
-    return(score1, score2)
+
     
 ###Strategies applied by ai
 def choose_play_random(possibles):
@@ -413,6 +390,34 @@ def better_play(possibles):
 #######################################"
 
 if __name__ == '__main__':
+    
+    def remove_from(array_dom, string):
+        n=int(array_dom.shape[0])
+        i=0
+        while (i < n) and (array_dom[i] != string):
+            i = i+1
+        new = list(array_dom[0:i])+list(array_dom[i+1:n])
+        return(np.array(new))
+
+    def print_game_situations(hand1, hand2, Board):
+        print("\n # Game :")
+        print("hand 1 : "+ str(hand1))
+        print("hand 2 : "+ str(hand2))
+        print("Dominoes on Board : "+ str(Board))
+    
+    def print_results(hand1, hand2):
+       score1 = 0
+       score2 = 0
+       for domino in hand1:
+           score1 += int(domino[0])
+           score1 += int(domino[1])
+       for domino in hand2:
+           score2 += int(domino[0])
+           score2 += int(domino[1])    
+       print("Player 1 gets "+str(score1)+" malus" )
+       print("Player 2 gets "+str(score2)+" malus" )
+       return(score1, score2)   
+    
     """Start a dominoes game with m tilts par hand"""
     m=5
     
@@ -435,6 +440,8 @@ if __name__ == '__main__':
     Board = []
     Board.append(Starting_Domino(stock[0], 290, 0, 90))
     stock = stock[1:]
+    
+    # parent_free_on_board, possibles = show_possibilities(hand1, Board)
     
     i = 0
     while hand1.shape[0] > 0 and hand2.shape[0] > 0:

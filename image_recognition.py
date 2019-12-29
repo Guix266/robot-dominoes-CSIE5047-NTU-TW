@@ -206,7 +206,7 @@ def find_rectangles(img, N, threshold=70000):
     """
     # approx height to width ratio of a domino
     ratio = 1.85
-    labeled_img = np.zeros(bw.shape)
+    # labeled_img = np.zeros(bw.shape)
     img = (img == np.max(img))
     total_area = np.sum(img)
     tile_area = total_area/N
@@ -402,7 +402,7 @@ if __name__ == '__main__':
         colorImg.append(img)
 
     # display one image on a large axis for further examination
-    displayID = 3
+    displayID = 2
     N = 12
 
     axIm[0].imshow(bwImg[displayID], cmap='binary')
