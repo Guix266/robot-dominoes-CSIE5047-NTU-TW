@@ -277,7 +277,7 @@ def find_rectangles(img, N, threshold=70000):
                 blob = np.asarray(blob > mask, dtype='uint8')
                 blob_area = np.sum(blob) / np.max(blob)
             coordinates += approx_coordinates
-    return (coordinates, tile_area)
+    return coordinates, tile_area
 
 
 def preprocessing(img):
@@ -402,7 +402,7 @@ if __name__ == '__main__':
         colorImg.append(img)
 
     # display one image on a large axis for further examination
-    displayID = 3
+    displayID = 5
     N = 12
 
     axIm[0].imshow(bwImg[displayID], cmap='binary')
