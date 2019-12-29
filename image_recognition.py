@@ -219,8 +219,10 @@ def find_rectangles(img, N, threshold=70000):
     w = int(round(min(np.sqrt(tile_area / ratio), np.sqrt(tile_area * ratio))))
     h = int(round(max(np.sqrt(tile_area / ratio), np.sqrt(tile_area * ratio))))
     coordinates = []
+
     # if the number of blobs matches the expected number of dominoes, we're done
     if m == N:
+        print("I see %i disconnected dominoes" % m)
         for i in range(m):
             blob = np.asarray((img == i), dtype='uint8')
             M = cv.moments(blob)
@@ -228,7 +230,8 @@ def find_rectangles(img, N, threshold=70000):
             yb = int(round(M['m10'] / M['m00']))
             phi = 0.5 * np.arctan2(2 * M['mu11'], (M['mu20'] - M['mu02']))
             coordinates.append([xb, yb, phi])
-        return coordinates
+        return coordinates, tile_area
+
     # but it doesn't
     for i in range(1, m+1):
         # separate a blob
@@ -277,7 +280,7 @@ def find_rectangles(img, N, threshold=70000):
                 blob = np.asarray(blob > mask, dtype='uint8')
                 blob_area = np.sum(blob) / np.max(blob)
             coordinates += approx_coordinates
-    return (coordinates, tile_area)
+    return coordinates, tile_area
 
 
 def preprocessing(img):

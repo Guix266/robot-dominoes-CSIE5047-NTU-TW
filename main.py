@@ -14,7 +14,7 @@ import os
 # import the modules that we have created
 import image_recognition
 import AI_v2
-# import arm
+import arm
 
 # =============================================================================
 # Define the game
@@ -37,7 +37,7 @@ m = 5
 
 # initialization
 myDobot=arm.DobotDominoes()
-myDobot.arm.setHome(200,0,170,0) # x, y, z, theta
+myDobot.arm.setHome(200, 0, 170, 0) # x, y, z, theta
 
 
 # =============================================================================
@@ -47,9 +47,11 @@ myDobot.arm.setHome(200,0,170,0) # x, y, z, theta
 #*** Camera take a picture
 
 #for the test import an image
-folder  = "images"
+folder = "images"
 filename = "uni_test.png"
-img = cv.imread(os.path.join(folder,filename),1)
+img = cv.imread(os.path.join(folder, filename), 1)
+img = cv.resize(img, (480, 640))
+img = np.rot90(img)
 plt.imshow(img)
 
 # Recognition
@@ -60,8 +62,8 @@ result = image_recognition.find_dominoes(img, 1)
 
 # Add the domino to the list of dominoes on the board
 domino = result[0]
-dom = AI_v2.Starting_Domino(domino[0], start_X, start_Y, start_angle)
-Board.append(dom)
+#dom = AI_v2.Starting_Domino(domino[0], start_X, start_Y, start_angle)
+#Board.append(dom)
 
 
 # =============================================================================
