@@ -5,6 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import random
 
+
 # =============================================================================
 # DEFINE DOMINOES
 # =============================================================================
@@ -411,85 +412,86 @@ def better_play(possibles):
 
 #######################################"
 
-"""Start a dominoes game with m tilts par hand"""
-m=5
-
-# Start the game
-dominoes = np.array(  [ "66",
-                        "65","55",
-                        "64","54","44",
-                        "63","53","43","33",
-                        "62","52","42","32","22",
-                        "61","51","41","31","21","11",
-                        "60","50","40","30","20","10","00" ] )
-
-np.random.shuffle(dominoes)
-# dispense tilts 
-hand1 = dominoes[0:m]
-hand2 = dominoes[m:2*m]
-stock = dominoes[2*m:]
-
-#Place the first domino on the board from the stock
-Board = []
-Board.append(Starting_Domino(stock[0], 290, 0, 90))
-stock = stock[1:]
-
-i = 0
-while hand1.shape[0] > 0 and hand2.shape[0] > 0:
-#for i in range(0,3):   
-    print_game_situations(hand1, hand2, Board)
+if __name__ == '__main__':
+    """Start a dominoes game with m tilts par hand"""
+    m=5
     
-    if i%2 == 0:
-        player = 1
-        current_hand = hand1
-    else:
-        player = 2
-        current_hand = hand2
+    # Start the game
+    dominoes = np.array(  [ "66",
+                            "65","55",
+                            "64","54","44",
+                            "63","53","43","33",
+                            "62","52","42","32","22",
+                            "61","51","41","31","21","11",
+                            "60","50","40","30","20","10","00" ] )
     
-    #######################" DESCISIONS
-    parent_free_on_board, possibles = show_possibilities(current_hand, Board)
-    print("\n# parents_free :")
-    for elem in parent_free_on_board:
-        print(elem)
-    print("# possibilities :")
-    for elem in possibles:
-        print(elem)
-
-    ## Choose among the possibilities
-    play = better_play(possibles)
-
-    print("\n#########################################")
-    if play == False:
-        print("No play available for the player "+str(player))
-        if stock.shape[0] > 0 :
-            if i%2 == 0:
-                print("The player draws")
-                hand1, stock = draw(hand1, stock)
-            else:
-                print("The player draws")
-                hand2, stock = draw(hand2, stock)
-    else :
-        print("The player " + str(player) + " plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
+    np.random.shuffle(dominoes)
+    # dispense tilts 
+    hand1 = dominoes[0:m]
+    hand2 = dominoes[m:2*m]
+    stock = dominoes[2*m:]
+    
+    #Place the first domino on the board from the stock
+    Board = []
+    Board.append(Starting_Domino(stock[0], 290, 0, 90))
+    stock = stock[1:]
+    
+    i = 0
+    while hand1.shape[0] > 0 and hand2.shape[0] > 0:
+    #for i in range(0,3):   
+        print_game_situations(hand1, hand2, Board)
         
-        dom = play_this_domino(play[0], play[1])
-        Board.append(dom)
-        
-        # Refresh the hands
         if i%2 == 0:
-            hand1 = remove_from(hand1, dom.name)
-            if stock.shape[0] > 0 :
-                hand1, stock = draw(hand1, stock)
+            player = 1
+            current_hand = hand1
         else:
-            hand2 = remove_from(hand2, dom.name)
+            player = 2
+            current_hand = hand2
+        
+        #######################" DESCISIONS
+        parent_free_on_board, possibles = show_possibilities(current_hand, Board)
+        print("\n# parents_free :")
+        for elem in parent_free_on_board:
+            print(elem)
+        print("# possibilities :")
+        for elem in possibles:
+            print(elem)
+    
+        ## Choose among the possibilities
+        play = better_play(possibles)
+    
+        print("\n#########################################")
+        if play == False:
+            print("No play available for the player "+str(player))
             if stock.shape[0] > 0 :
-                hand2, stock = draw(hand2, stock)
-    print("#########################################")
-
-    i += 1
-    input("[INFO] Press for next turn...")
-
-print("\n #### Game finished ####")
-print_results(hand1, hand2)
+                if i%2 == 0:
+                    print("The player draws")
+                    hand1, stock = draw(hand1, stock)
+                else:
+                    print("The player draws")
+                    hand2, stock = draw(hand2, stock)
+        else :
+            print("The player " + str(player) + " plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
+            
+            dom = play_this_domino(play[0], play[1])
+            Board.append(dom)
+            
+            # Refresh the hands
+            if i%2 == 0:
+                hand1 = remove_from(hand1, dom.name)
+                if stock.shape[0] > 0 :
+                    hand1, stock = draw(hand1, stock)
+            else:
+                hand2 = remove_from(hand2, dom.name)
+                if stock.shape[0] > 0 :
+                    hand2, stock = draw(hand2, stock)
+        print("#########################################")
+    
+        i += 1
+        input("[INFO] Press for next turn...")
+    
+    print("\n #### Game finished ####")
+    print_results(hand1, hand2)
 
 
 
