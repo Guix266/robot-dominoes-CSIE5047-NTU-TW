@@ -13,8 +13,8 @@ import os
 
 # import the modules that we have created
 import image_recognition
-import AI_v2
-import arm
+#import AI_v2
+#import arm
 
 # =============================================================================
 # Define the game
@@ -36,8 +36,8 @@ m = 5
 # =============================================================================
 
 # initialization
-myDobot=arm.DobotDominoes()
-myDobot.arm.setHome(200, 0, 170, 0) # x, y, z, theta
+#myDobot=arm.DobotDominoes()
+#myDobot.arm.setHome(200, 0, 170, 0) # x, y, z, theta
 
 
 # =============================================================================
