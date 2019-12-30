@@ -62,6 +62,18 @@ class DobotDominoes():
     def goTop(self):
         self.moveAbs(200,0,170)
 
+    def goTopHand(self):
+        self.moveAbs(200,-100,170)
+        self.moveAbs(150,-150,170)
+        self.moveAbs(100,-200,170)
+        self.moveAbs(0,-200,170)
+        
+    def goBack(self):
+        self.moveAbs(100,-200,170)
+        self.moveAbs(150,-150,170)
+        self.moveAbs(200,-100,170)
+        self.moveAbs(200,0,170)
+
     def goSuck(self,x,y):
         self.updatePose()
         self.moveAbs(x,y,20)

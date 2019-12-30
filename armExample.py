@@ -14,3 +14,8 @@ myDobot.rotateAbs(-90) # theta
  
 # for taking a picture
 myDobot.goTop()
+myDobot.moveAbs(0,-200,170)
+
+myDobot.goTopHand()
+myDobot.goBack()
+
