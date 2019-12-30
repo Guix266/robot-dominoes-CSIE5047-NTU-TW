@@ -220,17 +220,17 @@ def find_rectangles(img, N, threshold=70000):
     h = int(round(max(np.sqrt(tile_area / ratio), np.sqrt(tile_area * ratio))))
     coordinates = []
 
-    # if the number of blobs matches the expected number of dominoes, we're done
-    if m == N:
-        print("I see %i disconnected dominoes" % m)
-        for i in range(m):
-            blob = np.asarray((img == i), dtype='uint8')
-            M = cv.moments(blob)
-            xb = int(round(M['m01'] / M['m00']))
-            yb = int(round(M['m10'] / M['m00']))
-            phi = 0.5 * np.arctan2(2 * M['mu11'], (M['mu20'] - M['mu02']))
-            coordinates.append([xb, yb, phi])
-        return coordinates, tile_area
+    # # if the number of blobs matches the expected number of dominoes, we're done
+    # if m == N:
+    #     print("I see %i disconnected dominoes" % m)
+    #     for i in range(1, m+1):
+    #         blob = np.asarray((img == i), dtype='uint8')
+    #         M = cv.moments(blob)
+    #         xb = int(round(M['m01'] / M['m00']))
+    #         yb = int(round(M['m10'] / M['m00']))
+    #         phi = 0.5 * np.arctan2(2 * M['mu11'], (M['mu20'] - M['mu02']))
+    #         coordinates.append([xb, yb, phi])
+    #     return coordinates, tile_area
 
     # but it doesn't
     for i in range(1, m+1):
@@ -302,7 +302,10 @@ def preprocessing(img):
     img : uint8 2D array
         A scaled down copy of the starting image with darkend colorful pixels
     """
-    img = cv.resize(img, (266, 200))
+    if img.shape[0] < img.shape[1]:
+        img = cv.resize(img, (266, 200))
+    else:
+        img = cv.resize(img, (200, 266))
     # make colorfull pixels darker
     pixelStd = np.dstack((2*np.std(img, axis=2), )*3)
     img = np.maximum(255*np.zeros(img.shape), img - pixelStd)
@@ -380,9 +383,11 @@ def find_dominoes(img, N):
 
 if __name__ == '__main__':
     # load images
-    folder = "frames"
+    folder = "images"
+    filename = "uni_test.png"
     images = []
-    for filename in os.listdir(folder):
+   # for filename in os.listdir(folder):
+    for filename in ["uni_test.png", ]:
         img = cv.imread(os.path.join(folder, filename))
         if img is not None:
             images.append(img)
@@ -405,8 +410,8 @@ if __name__ == '__main__':
         colorImg.append(img)
 
     # display one image on a large axis for further examination
-    displayID = 2
-    N = 12
+    displayID = 0
+    N = 1
 
     axIm[0].imshow(bwImg[displayID], cmap='binary')
     axIm[0].set_title(r'Preprocessing')
