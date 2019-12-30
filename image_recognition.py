@@ -72,55 +72,6 @@ def generate_rot_templates(templ_simple, start=0, end=2*np.pi, num=24):
     return templates
 
 
-def generate_rot_templates_old(templ_simple, origin, start=0, end=2*np.pi, num=24, fill=True):
-    """
-    Generates a list of rotated templates for pattern matching
-
-    Parameters
-    ----------
-    templ_simple : uint8 2D-array
-        A square grayscale template
-    origin : np.array([int, int])
-        Coordinates of the rotation point
-    start : float
-        Starting angle
-    end : float
-        Final angle
-    num : int
-        Number of rotated templates
-    fill : bool
-        Fill holes in the image or not
-
-    Returns
-    -------
-    A list of num rotated templates
-    """
-    templates = []
-    size = templ_simple.shape[0]
-    # find the center of the matrix
-    for i in range(num):
-        phi = start + (end - start) / num * i
-        rot = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
-        templ = np.zeros((size, size), dtype='uint8')
-        for x in range(size):
-            for y in range(size):
-                if templ_simple[x, y] > 0:
-                    xn, yn = rot.dot(np.array([x, y]) - origin) + origin
-                    xn = int(round(xn, 0))
-                    yn = int(round(yn, 0))
-                    try:
-                        templ[xn, yn] = templ_simple[x, y]
-                    except IndexError:
-                        continue
-        # add an empty line at every border to fill the holes
-        temp = np.zeros((size + 2, size + 2), dtype='uint8')
-        temp[1:-1, 1:-1] = templ
-        if fill:
-            temp = fill_holes(temp)
-        templates.append(temp)
-    return templates
-
-
 def match_domino(img, coor, tile_area):
     best_dom = None
     xopt, yopt, best_phi = (0, 0, 0)
@@ -154,12 +105,10 @@ def match_domino(img, coor, tile_area):
             domino_img = domino_img[:, :, 1]
             domino_img = cv.resize(domino_img, (int(domino_img.shape[0]*scale_ratio),
                                                 int(domino_img.shape[1]*scale_ratio)))
-
             templ_rot = generate_rot_templates(domino_img,
                                                phi - delta_phi,
                                                phi + delta_phi,
                                                num=1)
-
             templ_rot_rev = generate_rot_templates(domino_img,
                                                    -np.pi + (phi - delta_phi),
                                                    -np.pi + (phi + delta_phi),
@@ -221,16 +170,16 @@ def find_rectangles(img, N, threshold=70000):
     coordinates = []
 
     # if the number of blobs matches the expected number of dominoes, we're done
-    if m == N:
-        print("I see %i disconnected dominoes" % m)
-        for i in range(m):
-            blob = np.asarray((img == i), dtype='uint8')
-            M = cv.moments(blob)
-            xb = int(round(M['m01'] / M['m00']))
-            yb = int(round(M['m10'] / M['m00']))
-            phi = 0.5 * np.arctan2(2 * M['mu11'], (M['mu20'] - M['mu02']))
-            coordinates.append([xb, yb, phi])
-        return coordinates, tile_area
+    # if m == N:
+    #     print("I see %i disconnected dominoes" % m)
+    #     for i in range(m):
+    #         blob = np.asarray((img == i), dtype='uint8')
+    #         M = cv.moments(blob)
+    #         xb = int(round(M['m01'] / M['m00']))
+    #         yb = int(round(M['m10'] / M['m00']))
+    #         phi = 0.5 * np.arctan2(2 * M['mu11'], (M['mu20'] - M['mu02']))
+    #         coordinates.append([xb, yb, phi])
+    #     return coordinates, tile_area
 
     # but it doesn't
     for i in range(1, m+1):
