@@ -16,6 +16,34 @@ import image_recognition
 import AI_v2
 # import arm
 
+def coord_board(X,Y,angle):
+    """ x, y : int
+            Pixel coordinates of the center of the domino
+        phi : float
+            The angle of a vector pointing from the half with lower number of points to the half with higher number.
+            Is defined with respect to the y-axis counterclockwise.
+    """
+    bl_corner = (150,200)
+    scale = "dist / pixel number"
+    X_robot = bl_corner[0] + scale*Y
+    Y_robot = bl_corner[1] - scale*X
+    angle = angle - 90
+    return(X_robot, Y_robot, angle)
+
+def coord_hand(X,Y,angle):
+    """ x, y : int
+            Pixel coordinates of the center of the domino
+        phi : float
+            The angle of a vector pointing from the half with lower number of points to the half with higher number.
+            Is defined with respect to the y-axis counterclockwise.
+    """
+    bl_corner = (150,-200)
+    scale = "dist / pixel number"
+    X_robot = bl_corner[0] - scale*X
+    Y_robot = bl_corner[1] - scale*Y
+    angle = angle - 180
+    return(X_robot, Y_robot, angle)
+
 # =============================================================================
 # Define the game
 # =============================================================================
@@ -57,31 +85,30 @@ else:
 
 # plt.imshow(img)
 
-# Recognition
+# Recognition of the first domino
 result = image_recognition.find_dominoes(img, 1)[0]
 
-# print(result)
-#*** function to get real coordinates of the dom
+# get the spacial informations of the domino annd convert them into real coordinates
+domino = result[0]
+start_X, start_Y, start_angle = coord_board(result[1])
 
 # Add the domino to the list of dominoes on the board
-domino = result[0]
-start_X, start_Y, start_angle = result[1]
 dom = AI_v2.Starting_Domino(domino, start_X, start_Y, start_angle)
 Board.append(dom)
 
-# # =============================================================================
-# # # III) Robot go on top of his hand
-# # =============================================================================
+# =============================================================================
+# # III) Robot go on top of his hand
+# =============================================================================
 
-# #***
+#***
 # myDobot.arm.goSuck(200,0)
 
 
-# # =============================================================================
-# # # IV) Robot choose the adapted tilt
-# # =============================================================================
+# =============================================================================
+# # IV) Robot choose the adapted tilt
+# =============================================================================
 
-# #*** Camera take a picture
+#*** Camera take a picture
 #for the test import an image
 folder = "frames"
 filename = "frame1.bmp"
@@ -118,42 +145,46 @@ else :
 # Get the position of the domino in the hand
 for domino in result:
     if domino[0] == play[0]:
-        play_hand = domino      # play_hand = ["11", (X_hand, Y_hand, angle_hand), phi]
+        play_real = domino      # play_hand = ["11", (X_hand, Y_hand, angle_hand), phi]
 
-# # =============================================================================
-# # # V) Robot need to pick the tilt
-# # =============================================================================
+# =============================================================================
+# # V) Robot need to pick the tilt
+# =============================================================================
 
-# #*** convert the coordinates in """"play_hand"""" to robot coordinates
+# convert the coordinates in """"play_hand"""" to robot coordinates
+play_real[1] = coord_hand(play_real[1])
     
-# #*** pick the tilt to the good coordinates
+#*** pick the tilt to the good coordinates
+myDobot.arm.goSuck(play_real[1][0], play_real[1][1])
 
-# # =============================================================================
-# # # VI) Robot go back in front of the board and place the tilt
-# # =============================================================================
+# =============================================================================
+# # VI) Robot go back in front of the board and place the tilt
+# =============================================================================
 
-# #*** pick the tilt to the good coordinates """"contained in dom.x, dom.y, dom.angle""""
-# # ATTENTION NEED TO RESCALE THE ANGLE BETWEEN -180,180
-# # I could modify it in AI_v2 if needed
+#*** put the tilt to the good coordinates """"contained in dom.x, dom.y, dom.angle""""
+myDobot.arm.goDisSuck(dom.x, dom.y)
+# ATTENTION NEED TO RESCALE THE ANGLE BETWEEN -180,180
+ 
+myDobot.arm.rotateAbs(dom.angle - play_real[1][2])
 
 
-# # =============================================================================
-# # # VII) Robot goes back in the top of the board
-# # =============================================================================
+# =============================================================================
+# # VII) Robot goes back in the top of the board
+# =============================================================================
 
-# #***
+#***
             
-# # =============================================================================
-# # # VIII) Wait for the player to play
-# # =============================================================================
+# =============================================================================
+# # VIII) Wait for the player to play
+# =============================================================================
         
-# input("It is your turn, please play and type ENTER...")
+input("It is your turn, please play and type ENTER...")
 
 
-# # =============================================================================
-# # # IX) Recognition of the board
-# # =============================================================================
+# =============================================================================
+# # IX) Recognition of the board
+# =============================================================================
 
-# #*** We just need to addapt what we have done before and make a loop
+#*** We just need to addapt what we have done before and make a loop
 
 
