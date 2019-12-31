@@ -40,7 +40,8 @@ class DobotDominoes():
         print((self.x,self.y,self.z,self.r,self.j1,self.j2,self.j3,self.j4))
     
     def moveAbs(self,x,y,z):
-        self.device.move_to(x, y, z, self.r, wait=True)
+        #self.device.move_to(x, y, z, self.r, wait=True) #MODE_PTP_MOVL_XYZ = 0x02
+        self.device._set_ptp_cmd(x,y,z,self.r,mode=0x01,wait=True) #MODE_PTP_MOVJ_XYZ = 0x01
         #self.updatePose()
     
     def moveRel(self,x,y,z):
