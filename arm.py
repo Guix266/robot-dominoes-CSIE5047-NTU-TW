@@ -64,29 +64,34 @@ class DobotDominoes():
         self.moveAbs(200,0,170)
 
     def goTopHand(self):
-        self.moveAbs(200,-100,170)
-        self.moveAbs(150,-150,170)
-        self.moveAbs(100,-200,170)
+        #self.moveAbs(200,-100,170)
+        #self.moveAbs(150,-150,170)
+        #self.moveAbs(100,-200,170)
         self.moveAbs(0,-200,170)
         
-    def goBack(self):
-        self.moveAbs(100,-200,170)
-        self.moveAbs(150,-150,170)
-        self.moveAbs(200,-100,170)
-        self.moveAbs(200,0,170)
+    #def goBack(self):
+        #self.moveAbs(100,-200,170)
+        #self.moveAbs(150,-150,170)
+        #self.moveAbs(200,-100,170)
+        #self.moveAbs(200,0,170)
 
     def goSuck(self,x,y):
         self.updatePose()
-        self.moveAbs(x,y,20)
+        self.moveAbs(x,y,25)
         self.enSuck()
-        self.moveAbs(x,y,7)
-        self.moveAbs(x,y,20)
+        self.moveAbs(x,y,10)
+        self.moveAbs(x,y,25)
     
     def goDisSuck(self,x,y):
         self.updatePose()
-        self.moveAbs(x,y,20)
+        self.moveAbs(x,y,25)
         self.disSuck()
-        
+
+
+def pixel2mm(x,y):
+    x=-0.41408*y+372.2957
+    y=-0.4459*x+147.126
+    return x,y
 #_set_ptp_cmd(x, y, z, r, mode=MODE_PTP_MOVL_XYZ, wait=wait)
 #home()
 #device.move_to(165, 0, 195, 0, wait=True)
