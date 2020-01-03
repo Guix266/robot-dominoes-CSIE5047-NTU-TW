@@ -3,32 +3,24 @@ import numpy as np
 import time
 import math
 
-def connectCamera():
-    cap=cv.VideoCapture(0)
-    _,frame=cap.read()
-    #cap.set(cv.CAP_PROP_FRAME_WIDTH,640)
-    #cap.set(cv.CAP_PROP_FRAME_HEIGHT,480)
-    cap.set(cv.CAP_PROP_FOCUS,0)
-    cap.set(cv.CAP_PROP_AUTO_EXPOSURE,0)
-    cap.set(cv.CAP_PROP_EXPOSURE,-7)
-    cap.set(cv.CAP_PROP_GAIN,0)
-    time.sleep(1)
-    _,frame=cap.read()
+def calcScale(p1I,p1A,p2I,p2A):
+    
+    print("Scale: "+str()+"Corner: "+str())
 
 def dominoesContours(binImg):
     _,contours,hierarchy=cv.findContours(binImg,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_NONE)
     return contours
 
 def contourMask(contour):
-    mask=np.zeros(frame.shape,dtype=np.uint8)
+    mask=np.zeros((480,640),dtype=np.uint8)
     cv.fillPoly(mask,[contour],255)
     return mask
 
 def singleDomino(binImg,mask):
     dst=cv.bitwise_and(binImg,mask)
     return dst
-
-def segmentDomino(binImg,contour):
+'''
+def segmentDomino2(binImg,contour):
     dst=binImg.copy()
     leftMost=contour[contour[:,:,0].argmin()][0]
     rightMost=contour[contour[:,:,0].argmax()][0]
@@ -46,15 +38,37 @@ def segmentDomino(binImg,contour):
     distance[1]=np.sum(distance[1]**2)
     if np.argmin(distance)==0:
         cv.line(dst,tuple(middlePoints[0]),tuple(middlePoints[3]),0,5)
+        cv.circle(dst,tuple(middlePoints[0]),5,0,-1)
+        cv.circle(dst,tuple(middlePoints[3]),5,0,-1)
     else:
         cv.line(dst,tuple(middlePoints[1]),tuple(middlePoints[2]),0,5)
+        cv.circle(dst,tuple(middlePoints[1]),5,0,-1)
+        cv.circle(dst,tuple(middlePoints[2]),5,0,-1)
+    return dst
+'''
+def segmentDomino(binImg,contour):
+    dst=binImg.copy()
+    M=cv.moments(contour)
+    cX=int(M["m10"]/M["m00"])
+    cY=int(M["m01"]/M["m00"])
+    minDistance=99999
+    minX=0
+    minY=0
+    for p in contour:
+        d=(p[0][0]-cX)**2+(p[0][1]-cY)**2
+        if d<minDistance:
+            minDistance=d
+            minX=p[0][0]
+            minY=p[0][1]
+    cv.line(dst,(minX,minY),(2*cX-minX,2*cY-minY),0,5)
+    ##cv.imwrite('frame'+str(1)+".bmp",dst)
     return dst
 
 def findNumber(binImg,contour):
     A=cv.countNonZero(binImg)
     if A>2550:
         num=0
-    elif A<2250:
+    elif A<2150:
         num=2
     else:
         num=1
@@ -76,7 +90,7 @@ def processImage(binImg):
             continue
         tmpImg=singleDomino(binImg,mask)
         tmpImg=segmentDomino(tmpImg,contour)
-        
+        cv.imwrite('frame'+str(1)+".bmp",tmpImg)
         tmpContours=dominoesContours(tmpImg)
         print("The number of square contours:"+str(len(tmpContours)))
         for tmpContour in tmpContours:
@@ -101,6 +115,18 @@ def dominoAngle(input):
         else:
             angle.append(math.degrees(-math.atan2(first[1]-second[1],first[0]-second[0])))
     return angle
+
+def finalOutput(img):
+    img=cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+    _,binar=cv.threshold(img,80,255,cv.THRESH_BINARY)
+    ret=[]
+    processed=processImage(binar)
+    angle=dominoAngle(processed)
+    for i in range(len(angle)):
+        x=(processed[i*2][0]+processed[i*2+1][0])//2
+        y=(processed[i*2][1]+processed[i*2+1][1])//2
+        ret.append([str(processed[i*2][2])+str(processed[i*2+1][2]),(x,y,angle[i])])
+    return ret
     
 '''    
 contours=dominoesContours(binar)
@@ -116,15 +142,7 @@ tmpImg=singleDomino(tmpImg,tmpMask)
 cv.countNonZero(tmpImg)
 '''
 
-_,frame=cap.read()
-frame=cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
-#frame=cv.imread("frame0.bmp",cv.IMREAD_GRAYSCALE)
-_,binar=cv.threshold(frame,80,255,cv.THRESH_BINARY)
 
-print(processImage(binar))
-out=frame
-for a in processImage(binar):
-    cv.putText(out,str(a[2]),(a[0],a[1]),cv.FONT_HERSHEY_COMPLEX,1,0)
 
 '''
 color=tmpImg
@@ -133,8 +151,8 @@ cv.drawContours(color,tmpContours,-1,(0,255,0),3)
 '''
 #cv.circle(color,(cX,cY),10,(1,227,254),-1)
 
-print(dominoAngle(processImage(binar)))
-cv.imwrite('frame'+str(1)+".bmp",out)
+#print(dominoAngle(processImage(binar)))
+
 
 '''
 while True:
