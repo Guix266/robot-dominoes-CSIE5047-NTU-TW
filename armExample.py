@@ -19,4 +19,5 @@ myDobot.moveAbs(0,-200,170)
 
 myDobot.goTopHand()
 
-myDobot.goSuck(armX,armY)
+myDobot.goSuck(200,0)
+myDobot.rotateAbs(0)
