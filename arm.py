@@ -40,7 +40,8 @@ class DobotDominoes():
         print((self.x,self.y,self.z,self.r,self.j1,self.j2,self.j3,self.j4))
     
     def moveAbs(self,x,y,z):
-        self.device.move_to(x, y, z, self.r, wait=True)
+        #self.device.move_to(x, y, z, self.r, wait=True) #MODE_PTP_MOVL_XYZ = 0x02
+        self.device._set_ptp_cmd(x,y,z,self.r,mode=0x01,wait=True) #MODE_PTP_MOVJ_XYZ = 0x01
         #self.updatePose()
     
     def moveRel(self,x,y,z):
@@ -62,16 +63,28 @@ class DobotDominoes():
     def goTop(self):
         self.moveAbs(200,0,170)
 
+    def goTopHand(self):
+        #self.moveAbs(200,-100,170)
+        #self.moveAbs(150,-150,170)
+        #self.moveAbs(100,-200,170)
+        self.moveAbs(0,-200,170)
+        
+    #def goBack(self):
+        #self.moveAbs(100,-200,170)
+        #self.moveAbs(150,-150,170)
+        #self.moveAbs(200,-100,170)
+        #self.moveAbs(200,0,170)
+
     def goSuck(self,x,y):
         self.updatePose()
-        self.moveAbs(x,y,20)
+        self.moveAbs(x,y,25)
         self.enSuck()
-        self.moveAbs(x,y,7)
-        self.moveAbs(x,y,20)
+        self.moveAbs(x,y,10)
+        self.moveAbs(x,y,25)
     
     def goDisSuck(self,x,y):
         self.updatePose()
-        self.moveAbs(x,y,20)
+        self.moveAbs(x,y,25)
         self.disSuck()
         
 #_set_ptp_cmd(x, y, z, r, mode=MODE_PTP_MOVL_XYZ, wait=wait)
