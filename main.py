@@ -38,7 +38,7 @@ def coord_hand(X, Y, angle):
             The angle of a vector pointing from the half with lower number of points to the half with higher number.
             Is defined with respect to the y-axis counterclockwise.
     """
-    bl_corner = (150,-200)
+    bl_corner = (150, -200)
     scale = 0.41408
     X_robot = bl_corner[0] - scale*X
     Y_robot = bl_corner[1] + scale*Y
@@ -64,7 +64,7 @@ m = 5
 # =============================================================================
 
 # =============================================================================
-# # I) The robot go on top of the board and recognise the first domino
+# # I) The robot go to the top of the board and recognise the first domino
 # =============================================================================
 
 # initialization
@@ -72,10 +72,10 @@ m = 5
 # myDobot.arm.setHome(200, 0, 170, 0) # x, y, z, theta
 cap=cv.VideoCapture(0)
 _,frame=cap.read()
-cap.set(cv.CAP_PROP_FOCUS,0)
-cap.set(cv.CAP_PROP_AUTO_EXPOSURE,0)
-cap.set(cv.CAP_PROP_EXPOSURE,-7)
-cap.set(cv.CAP_PROP_GAIN,0)
+cap.set(cv.CAP_PROP_FOCUS, 0)
+cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 0)
+cap.set(cv.CAP_PROP_EXPOSURE, -7)
+cap.set(cv.CAP_PROP_GAIN, 0)
 time.sleep(1)
 _,frame=cap.read()
 
@@ -100,10 +100,10 @@ plt.imshow(img)
 # Recognition of the first domino
 result = image_recognition.find_dominoes(img, 12)[0]
 '''
-result=finalOutput(frame)
-# get the spacial informations of the domino annd convert them into real coordinates
+result = finalOutput(frame)
+# get the spacial informations of the domino and convert them into real coordinates
 domino = result[0]
-start_X, start_Y, start_angle = coord_board(domino[1][0],domino[1][1],domino[1][2])
+start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
 
 # Add the domino to the list of dominoes on the board
 dom = AI_v2.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
@@ -135,8 +135,8 @@ else:
 
 result = image_recognition.find_dominoes(img, 11) #! m
 '''
-_,frame=cap.read()
-result=finalOutput(frame)
+_,frame = cap.read()
+result = finalOutput(frame)
 #print(result)
 robot_hand = []
 for domino in result:
@@ -145,15 +145,15 @@ for domino in result:
 
 # Compute all the possible plays of robot
 parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
-#Choose the most adapted play
+# Choose the most adapted play
 play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
 print(play)
 
 # Add to the list this dominoes
-if play == False:
-    print("No play available for the robot. ")
+if not play:
+    print("No move available for the robot. ")
     input("Please draw for the robot and type [ENTER]")
-else :
+else:
     print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
     
     dom = AI_v2.play_this_domino(play[0], play[1])
