@@ -3,9 +3,30 @@ import numpy as np
 import time
 import math
 
-def calcScale(p1I,p1A,p2I,p2A):
-    
-    print("Scale: "+str()+"Corner: "+str())
+def calcScale(p1_img,p1_arm,p2_img,p2_arm,p3_img,p3_arm):
+    a = np.array([[p1_img[0], p1_img[1],0,0, 1,0],
+                  [0,0,p1_img[0], p1_img[1], 0,1],
+                  [p2_img[0], p2_img[1],0,0, 1,0],
+                  [0,0,p2_img[0], p2_img[1], 0,1], 
+                  [p3_img[0], p3_img[1],0,0, 1,0],
+                  [0,0,p3_img[0], p3_img[1], 0,1]])
+    b= np.array([p1_arm[0],
+                 p1_arm[1],
+                 p2_arm[0],
+                 p2_arm[1], 
+                 p3_arm[0],
+                 p3_arm[1]])
+    x = np.linalg.solve(a, b)
+    print(x)
+    return x
+
+def calcCentroid(p1,p2):
+    print((p1[0]+p2[0])/2,(p1[1]+p2[1])/2)
+
+def calcTest(p):
+    x=-0.0099*p[0]-0.4007*p[1]+376.442
+    y=-0.4245*p[0]-0.0136*p[1]+149.549
+    print(x,y)
 
 def dominoesContours(binImg):
     _,contours,hierarchy=cv.findContours(binImg,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_NONE)
@@ -66,9 +87,9 @@ def segmentDomino(binImg,contour):
 
 def findNumber(binImg,contour):
     A=cv.countNonZero(binImg)
-    if A>2550:
+    if A>2800:
         num=0
-    elif A<2150:
+    elif A<2400:
         num=2
     else:
         num=1
@@ -118,7 +139,7 @@ def dominoAngle(input):
 
 def finalOutput(img):
     img=cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-    _,binar=cv.threshold(img,80,255,cv.THRESH_BINARY)
+    _,binar=cv.threshold(img,40,255,cv.THRESH_BINARY)
     ret=[]
     processed=processImage(binar)
     angle=dominoAngle(processed)
