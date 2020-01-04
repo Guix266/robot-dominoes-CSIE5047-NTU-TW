@@ -39,11 +39,12 @@ class Domino_on_board(Domino):
         Domino.__init__(self, name)
         
         #Add the domino to the list of dominoes on the board
-        if self.name in Domino.board:
+        '''if self.name in Domino.board:
             raise Exception("This domino was already put put on the board!")
         else:
             Domino.board.append(self.name)
-        
+        '''
+        Domino.board.append(self.name)
         # define the parent
         if (parent.name not in Domino.board):
             raise Exception("The parent is not on the board!")
@@ -499,6 +500,3 @@ if __name__ == '__main__':
     
     print("\n #### Game finished ####")
     print_results(hand1, hand2)
-
-
-

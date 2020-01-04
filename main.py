@@ -49,7 +49,7 @@ def coord_hand(X,Y,angle):
     '''
     X_robot = handMat[0]*X+handMat[1]*Y+handMat[4]
     Y_robot = handMat[2]*X+handMat[3]*Y+handMat[5]
-    angle = angle - 180
+    angle = angle - 90
     return(X_robot, Y_robot, angle)
     
 def principal_angle(angle):
@@ -69,6 +69,7 @@ def real_rotate(angle):
         myDobot.rotateAbs(90)
         index = 2
     return index
+
         
 # =============================================================================
 # Define the game
@@ -93,10 +94,6 @@ m = 3
 myDobot=DobotDominoes()
 myDobot.setHome(200,0,170,0) # x, y, z, theta
 myDobot.goHome()
-time.sleep(20)
-myDobot.printPose()
-#time.sleep(20)
-myDobot.goTop()
 
 cap=cv.VideoCapture(0)
 _,frame=cap.read()
@@ -104,8 +101,14 @@ cap.set(cv.CAP_PROP_FOCUS,0)
 cap.set(cv.CAP_PROP_AUTO_EXPOSURE,0)
 cap.set(cv.CAP_PROP_EXPOSURE,-7)
 cap.set(cv.CAP_PROP_GAIN,0)
-time.sleep(1)
+time.sleep(2)
 _,frame=cap.read()
+
+#time.sleep(20)
+myDobot.printPose()
+myDobot.goTop()
+
+
 
 boardMat=calcScale((241.5,179.5),(302.1,34.6),(71.5,156),(307.2,108.2),(540.5,371.5),(219.2,-95.3))
 handMat=calcScale((384.5,144),(-31.9,-317.1),(407,319.5),(-36.6,-242.4),(535.5,214),(-93.4,-288.9))
@@ -134,7 +137,7 @@ Board.append(dom)
 #***
 # myDobot.arm.goSuck(200,0)
 myDobot.goTopHand()
-time.sleep(1)
+time.sleep(2)
 _,frame=cap.read()
 #cv.imwrite('frame'+str(1)+".bmp",frame)
 result=finalOutput(frame)
@@ -198,6 +201,8 @@ angle = principal_angle(dom.angle - play_real[1][2])
 index = real_rotate(angle)
 '''
 
+# if the domino has to be rotated by a very large angle, rotate the suction cup first 
+
 
 # pick the tilt to the good coordinates
 myDobot.goSuck(play_real[1][0], play_real[1][1])
@@ -230,16 +235,18 @@ input("It is your turn, please play and type ENTER...")
 #*** We just need to addapt what we have done before and make a loop
 while(True):
     myDobot.goTop()
-    time.sleep(1)
+    time.sleep(2)
     _,frame=cap.read()
     #for the test import an image
     result=finalOutput(frame)
+    
+    
     domino = result[0]
+    
     start_X, start_Y, start_angle = coord_board(domino[1][0],domino[1][1],domino[1][2])
     
     # Add the domino to the list of dominoes on the board
-    dom = AI_v2.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
-    Board.append(dom)
+    
     myDobot.goTopHand()
     time.sleep(1)
     _,frame=cap.read()
