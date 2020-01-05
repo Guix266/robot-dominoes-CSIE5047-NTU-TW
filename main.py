@@ -277,7 +277,7 @@ while(True):
     result = finalOutput(frame)
     robot_hand = []
     for domino in result:
-        robot_hand.append(domino[0])
+        robot_hand.append(domino[0]) # name of the domino
     print("Robot hand: " + str(robot_hand))
     
     # Compute all the possible plays of robot
