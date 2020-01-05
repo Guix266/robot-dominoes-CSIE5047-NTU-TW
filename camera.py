@@ -139,7 +139,7 @@ def dominoAngle(input):
 
 def finalOutput(img):
     img = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-    # _,binar = cv.threshold(img, 40, 255, cv.THRESH_BINARY)
+    _,binar = cv.threshold(img, 40, 255, cv.THRESH_BINARY)
     _,binar = cv.threshold(img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
     ret = []
     processed = processImage(binar)

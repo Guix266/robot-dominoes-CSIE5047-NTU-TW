@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Created on Sat Dec 28 18:52:01 2019
 
@@ -67,14 +68,18 @@ def principal_angle(angle):
     return(angle)
 
 
-def real_rotate(angle):
-    if abs(angle) <= 90:
+def real_rotate(angle, thres):
+    """
+    thres: max angle of rotation of the suction cup when the robot is 
+    in the _neutral position_
+    """
+    if abs(angle) <= thres:
         index = 0
-    elif angle > 90:
-        myDobot.rotateAbs(-90)
+    elif angle > thres:
+        myDobot.rotateAbs(-angle + thres)
         index = 1
-    elif angle < -90:
-        myDobot.rotateAbs(90)
+    elif angle < -thres:
+        myDobot.rotateAbs(-angle - thres)
         index = 2
     return index
 
@@ -104,45 +109,40 @@ handMat=calcScale((384.5,144),(-31.9,-317.1),(407,319.5),(-36.6,-242.4),(535.5,2
 
 # initialization
 myDobot=DobotDominoes()
+time.sleep(1)
 myDobot.setHome(200,0,170,0) # x, y, z, theta
 myDobot.goHome()
 
-cap=cv.VideoCapture(0)
+cap=cv.VideoCapture(1)
 _,frame=cap.read()
 cap.set(cv.CAP_PROP_FOCUS, 0)
 cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 0)
 cap.set(cv.CAP_PROP_EXPOSURE, -7)
 cap.set(cv.CAP_PROP_GAIN, 0)
 time.sleep(2)
-_,frame=cap.read()
-
-#time.sleep(20)
-myDobot.printPose()
-myDobot.goTop()
+time.sleep(1)
+_,frame = cap.read()
+_,frame = cap.read()
+time.sleep(1)
+plt.imshow(frame)
 
 
 # =============================================================================
 # # II) Recognition of the first Board
 # =============================================================================
 
-# Camera take a picture
-_,frame=cap.read()
-#for the test import an image
-
-
 '''
-plt.imshow(img)
-
 # Recognition of the first domino
 result = image_recognition.find_dominoes(img, 12)[0]
 '''
-result = finalOutput(frame)
+
 # get the spacial informations of the domino and convert them into real coordinates
 result=finalOutput(frame)
 #calcScale((527.5,161),(306.7,-76.6),(226,147),(315.3,51.6),(299,258),(270.1,19.1))
 # get the spacial information of the domino and convert them into real coordinates
 
-domino = result[0]
+# domino = result[0]
+domino = ["22", result[0][1]]
 start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
 
 # Add the domino to the list of dominoes on the board
@@ -153,33 +153,20 @@ Board.append(dom)
 # # III) Robot go on top of his hand
 # =============================================================================
 
-#***
+
 # myDobot.arm.goSuck(200,0)
 myDobot.goTopHand()
 time.sleep(2)
-_,frame=cap.read()
-#cv.imwrite('frame'+str(1)+".bmp",frame)
-result=finalOutput(frame)
+
 # =============================================================================
 # # IV) Robot choose the adapted tilt
 # =============================================================================
 
-#*** Camera take a picture
-#for the test import an image
-'''
-folder = "frames"
-filename = "frame1.bmp"
-img = cv.imread(os.path.join(folder, filename), 1)
-if img.shape[0] < img.shape[1]:
-    img = cv.resize(img, (266, 200))
-else:
-    img = cv.resize(img, (200, 266))
-
-
-result = image_recognition.find_dominoes(img, 11) #! m
-'''
-
+# Camera take a picture
 _,frame = cap.read()
+_,frame = cap.read()
+time.sleep(1)
+
 result_hand = finalOutput(frame)
 #print(result_hand)
 robot_hand = []
@@ -216,7 +203,6 @@ for domino in result_hand:
 play_real[1] = coord_hand(play_real[1][0],play_real[1][1],play_real[1][2])
 
 
-myDobot.goTop()
 # prepare for the rotation
 '''
 angle = principal_angle(dom.angle - play_real[1][2])
@@ -224,7 +210,8 @@ index = real_rotate(angle)
 '''
 
 # if the domino has to be rotated by a very large angle, rotate the suction cup first 
-
+rotate_in_air = principal_angle(dom.angle - play_real[1][2])
+real_rotate(rotate_in_air, 140)
 
 # pick the tilt to the good coordinates
 myDobot.goSuck(play_real[1][0], play_real[1][1])
@@ -234,6 +221,7 @@ myDobot.goSuck(play_real[1][0], play_real[1][1])
 # =============================================================================
 
 myDobot.goTop()
+myDobot.rotateAbs(rotate_in_air)
 myDobot.goDisSuck(dom.x, dom.y)
 
 myDobot.goTop()
@@ -263,6 +251,7 @@ while(True):
     myDobot.goTop()
     time.sleep(2)
     _,frame = cap.read()
+    _,frame = cap.read()
     result = finalOutput(frame)
 
     # find the new domino
@@ -278,17 +267,21 @@ while(True):
         new_parent = result[1]
     min_dist = distance(new_parent, new_domino)
     for i in range(0, len(result)):
-        if distance(new_domino, new_parent) < min_dist:
+        if distance(new_domino, result[i]) < min_dist and distance(new_domino, result[i])>0 :
             new_parent = result[i]
             min_dist = distance(new_parent, new_domino)
     
-    if domino == None:
+    if new_domino == None:
         raise Exception("I can't find a new domino on the board!")
     print("I see a new domino: %s" % str(new_domino))
     print("On this parent %s" % str(new_parent))
     
+    for obj in Board:
+        print(obj.name)
+        if obj.name == new_parent[0]:
+            new_parent = obj
     # Add the new_domino to the list of dominoes on the board
-    dom = AI_v3.play_this_domino(new_domino, new_parent)
+    dom = AI_v3.play_this_domino(new_domino[0], new_parent)
     Board.append(dom)
     
     # =============================================================================
@@ -297,8 +290,10 @@ while(True):
 
     
     myDobot.goTopHand()
-    time.sleep(1)
+    time.sleep(5)
     _,frame=cap.read()
+    _,frame = cap.read()
+    time.sleep(1)
     #cv.imwrite('frame'+str(1)+".bmp",frame)
     result_hand = finalOutput(frame)
     robot_hand = []
@@ -328,8 +323,8 @@ while(True):
     
     play_real[1] = coord_hand(play_real[1][0],play_real[1][1],play_real[1][2])
     
+    # if the domino has to be rotated by a very large angle, rotate the suction cup first 
+    rotate_in_air = principal_angle(dom.angle - play_real[1][2])
+    real_rotate(rotate_in_air, 140)
     
-    myDobot.goSuck(play_real[1][0], play_real[1][1])
-    myDobot.goTop()
-    myDobot.goDisSuck(dom.x, dom.y)
-    input("It is your turn, please play and type ENTER...")
+    

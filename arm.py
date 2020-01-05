@@ -87,9 +87,9 @@ class DobotDominoes():
         self.moveAbs(x,y,25)
         self.disSuck()
   
-myDobot=DobotDominoes()      
+# myDobot=DobotDominoes()      
 # _set_ptp_cmd(x, y, z, r, mode=MODE_PTP_MOVL_XYZ, wait=wait)
-myDobot.goHome()
+# myDobot.goHome()
 #device.move_to(165, 0, 195, 0, wait=True)
 #device.move_to(20, y, z, r, wait=True)
 #device.move_to(x, y, z, r, wait=True)  # we wait until this movement is done before continuing
