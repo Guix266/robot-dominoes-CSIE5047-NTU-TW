@@ -17,6 +17,7 @@ import AI_v2
 from arm import *
 from camera import *
 
+
 def coord_board(X, Y, angle):
     """ x, y : int
             Pixel coordinates of the center of the domino
@@ -37,6 +38,7 @@ def coord_board(X, Y, angle):
     Y_robot = boardMat[2]*X+boardMat[3]*Y+boardMat[5]
     angle = angle - 90
     return(X_robot, Y_robot, angle)
+
 
 def coord_hand(X, Y, angle):
     """ x, y : int
@@ -251,14 +253,20 @@ input("It is your turn, please play and type ENTER...")
 while(True):
     myDobot.goTop()
     time.sleep(2)
-    _,frame=cap.read()
-    #for the test import an image
-    result=finalOutput(frame)
+    _,frame = cap.read()
+    result = finalOutput(frame)
+
+    # find the new domino
+    for i in range(len(result)):
+        try:
+            domino = Domino_on_board(result[i][0])
+        except:
+            pass
+    if domino == None:
+        raise Exception("I can't find a new domino on the board!")
+    print("I see a new domino: %s" % str(domino.name))
     
-    
-    domino = result[0]
-    
-    start_X, start_Y, start_angle = coord_board(domino[1][0],domino[1][1],domino[1][2])
+    start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
     
     # Add the domino to the list of dominoes on the board
     
@@ -266,11 +274,11 @@ while(True):
     time.sleep(1)
     _,frame=cap.read()
     #cv.imwrite('frame'+str(1)+".bmp",frame)
-    result=finalOutput(frame)
+    result = finalOutput(frame)
     robot_hand = []
     for domino in result:
         robot_hand.append(domino[0])
-    # print(robot_hand)
+    print("Robot hand: " + str(robot_hand))
     
     # Compute all the possible plays of robot
     parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
