@@ -13,7 +13,7 @@ import os
 import time
 
 # import the modules that we have created
-import AI_v2
+import AI_v3
 from arm import *
 from camera import *
 
@@ -199,12 +199,7 @@ myDobot.goSuck(play_real[1][0], play_real[1][1])
 myDobot.goTop()
 myDobot.goDisSuck(dom.x, dom.y)
 
- 
-# =============================================================================
-# # VII) Robot goes back in the top of the board
-# =============================================================================
-
-#***
+myDobot.goTop()
             
 # =============================================================================
 # # VIII) Wait for the player to play
@@ -219,6 +214,10 @@ input("It is your turn, please play and type ENTER...")
 
 #*** We just need to addapt what we have done before and make a loop
 while(True):
+    # =============================================================================
+    # # VII) Robot goes back in the top of the board
+    # =============================================================================
+
     myDobot.goTop()
     time.sleep(2)
     _,frame=cap.read()
