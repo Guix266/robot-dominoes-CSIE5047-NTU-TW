@@ -36,7 +36,7 @@ def coord_board(X, Y, angle):
     '''
     X_robot = boardMat[0]*X+boardMat[1]*Y+boardMat[4]
     Y_robot = boardMat[2]*X+boardMat[3]*Y+boardMat[5]
-    angle = angle - 90
+    angle = angle
     return(X_robot, Y_robot, angle)
 
 
@@ -78,6 +78,11 @@ def real_rotate(angle):
         index = 2
     return index
 
+def distance(dom1, dom2):
+    """ give the distnace between 2 centers
+    input : ["11", (X,Y,angle)]  """
+    distance = (dom1[1][0] - dom2[1][0])**2 + (dom1[1][1] - dom2[1][1])**2
+    return((distance)**(1/2))
 
 # =============================================================================
 # Define the game
@@ -141,7 +146,7 @@ domino = result[0]
 start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
 
 # Add the domino to the list of dominoes on the board
-dom = AI_v2.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
+dom = AI_v3.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
 Board.append(dom)
 
 # =============================================================================
@@ -175,17 +180,17 @@ result = image_recognition.find_dominoes(img, 11) #! m
 '''
 
 _,frame = cap.read()
-result = finalOutput(frame)
-#print(result)
+result_hand = finalOutput(frame)
+#print(result_hand)
 robot_hand = []
-for domino in result:
+for domino in result_hand:
     robot_hand.append(domino[0])
 # print(robot_hand)
 
 # Compute all the possible plays of robot
-parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
+parent_free_on_board, possibles = AI_v3.show_possibilities(robot_hand, Board)
 # Choose the most adapted play
-play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
+play = AI_v3.better_play(possibles) # play = ["11", dom_parent, num_connection]
 print(play)
 
 # Add to the list this dominoes
@@ -195,11 +200,11 @@ if not play:
 else:
     print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
     
-    dom = AI_v2.play_this_domino(play[0], play[1])
+    dom = AI_v3.play_this_domino(play[0], play[1])
     Board.append(dom)
     
 # Get the position of the domino in the hand
-for domino in result:
+for domino in result_hand:
     if domino[0] == play[0]:
         play_real = domino      # play_hand = ["11", (X_hand, Y_hand, angle_hand), phi]
 
@@ -210,8 +215,8 @@ for domino in result:
 # convert the coordinates in """"play_hand"""" to robot coordinates
 play_real[1] = coord_hand(play_real[1][0],play_real[1][1],play_real[1][2])
 
-# put the tilt to the good coordinates """"contained in dom.x, dom.y, dom.angle""""
 
+myDobot.goTop()
 # prepare for the rotation
 '''
 angle = principal_angle(dom.angle - play_real[1][2])
@@ -247,42 +252,64 @@ input("It is your turn, please play and type ENTER...")
 #*** We just need to addapt what we have done before and make a loop
 while(True):
     # =============================================================================
-    # # VII) Robot goes back in the top of the board
+    # # VII) Robot goes back in the top of the board and learn which domino was added by the player
     # =============================================================================
-
+    
+    # compute dominoes on the board before picture
+    board_before = []
+    for domino in result:
+        board_before.append(domino[0])
+        
     myDobot.goTop()
     time.sleep(2)
     _,frame = cap.read()
     result = finalOutput(frame)
 
     # find the new domino
+    new_domino = []
     for i in range(len(result)):
-        try:
-            domino = Domino_on_board(result[i][0])
-        except:
-            pass
+        if result[i][0] not in board_before:
+            new_domino = result[i]
+    
+    # get the parent of new_domino
+    if distance(new_domino, result[0]) > 1e-5:
+        new_parent = result[0]
+    else:
+        new_parent = result[1]
+    min_dist = distance(new_parent, new_domino)
+    for i in range(0, len(result)):
+        if distance(new_domino, new_parent) < min_dist:
+            new_parent = result[i]
+            min_dist = distance(new_parent, new_domino)
+    
     if domino == None:
         raise Exception("I can't find a new domino on the board!")
-    print("I see a new domino: %s" % str(domino.name))
+    print("I see a new domino: %s" % str(new_domino))
+    print("On this parent %s" % str(new_parent))
     
-    start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
+    # Add the new_domino to the list of dominoes on the board
+    dom = AI_v3.play_this_domino(new_domino, new_parent)
+    Board.append(dom)
     
-    # Add the domino to the list of dominoes on the board
+    # =============================================================================
+    # # III) Robot go on top of his hand
+    # =============================================================================
+
     
     myDobot.goTopHand()
     time.sleep(1)
     _,frame=cap.read()
     #cv.imwrite('frame'+str(1)+".bmp",frame)
-    result = finalOutput(frame)
+    result_hand = finalOutput(frame)
     robot_hand = []
-    for domino in result:
+    for domino in result_hand:
         robot_hand.append(domino[0]) # name of the domino
     print("Robot hand: " + str(robot_hand))
     
     # Compute all the possible plays of robot
-    parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
+    parent_free_on_board, possibles = AI_v3.show_possibilities(robot_hand, Board)
     #Choose the most adapted play
-    play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
+    play = AI_v3.better_play(possibles) # play = ["11", dom_parent, num_connection]
     print(play)
     
     if play == False:
@@ -291,11 +318,11 @@ while(True):
     else :
         print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
         
-        dom = AI_v2.play_this_domino(play[0], play[1])
+        dom = AI_v3.play_this_domino(play[0], play[1])
         Board.append(dom)
         
     # Get the position of the domino in the hand
-    for domino in result:
+    for domino in result_hand:
         if domino[0] == play[0]:
             play_real = domino      # play_hand = ["11", (X_hand, Y_hand, angle_hand), phi]
     
