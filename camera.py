@@ -87,9 +87,9 @@ def segmentDomino(binImg,contour):
 
 def findNumber(binImg,contour):
     A=cv.countNonZero(binImg)
-    if A>2800:
+    if A>3050:
         num=0
-    elif A<2400:
+    elif A<2600:
         num=2
     else:
         num=1
@@ -139,7 +139,7 @@ def dominoAngle(input):
 
 def finalOutput(img):
     img = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-    _,binar = cv.threshold(img, 40, 255, cv.THRESH_BINARY)
+    #_,binar = cv.threshold(img, 40, 255, cv.THRESH_BINARY)
     _,binar = cv.threshold(img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
     ret = []
     processed = processImage(binar)

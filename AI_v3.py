@@ -153,7 +153,7 @@ class Domino_on_board(Domino):
                         self.angle = self.parent.angle + 180
                     else:
                          self.angle = self.parent.angle
-            else:
+            elif position == N:
                  if self.south > self.north:
                      if self.parent.south < self.parent.north:
                          self.angle = self.parent.angle + 180
@@ -164,12 +164,23 @@ class Domino_on_board(Domino):
                          self.angle = self.parent.angle
                      else:
                          self.angle = self.parent.angle + 180
+            elif position == W:
+                if self.south > self.north:
+                    self.angle = self.parent.angle - 90
+                else:
+                    self.angle = self.parent.angle + 90
+            elif position == E:
+                if self.south > self.north:
+                    self.angle = self.parent.angle + 90
+                else:
+                    self.angle = self.parent.angle - 90
+                         
         
         print("possition :"+ str(position))
         ag = 0
         length = 0
-        big_length = 29
-        little_length = 16
+        big_length = 25
+        little_length = 15
         # Coordinates
         if self.dom_type == "simple":
             if self.parent.south > self.parent.north:
@@ -180,10 +191,10 @@ class Domino_on_board(Domino):
                     ag = self.parent.angle
                     length = 2*big_length
                 elif position == E:
-                    ag = self.parent.angle + 90
+                    ag = self.parent.angle 
                     length = big_length + little_length
                 elif position == W:
-                    ag = self.angle -90
+                    ag = self.angle
                     length = big_length + little_length
             elif self.parent.south <= self.parent.north:
                 if position == N:
@@ -193,20 +204,20 @@ class Domino_on_board(Domino):
                     ag = self.parent.angle + 180
                     length = 2*big_length
                 elif position == E:
-                    ag = self.angle -90
+                    ag = self.angle 
                     length = big_length + little_length
                 elif position == W:
-                    ag = self.parent.angle + 90
+                    ag = self.parent.angle
                     length = big_length + little_length
         elif self.dom_type == "double":
-            if self.parent.south >= self.parent.north:
+            if self.parent.south > self.parent.north:
                 if position == N:
                     ag = self.parent.angle + 180
                     length = big_length + little_length
                 elif position == S:
                     ag = self.parent.angle
                     length = big_length + little_length
-            elif self.parent.south < self.parent.north:
+            elif self.parent.south <= self.parent.north:
                 if position == N:
                     ag = self.parent.angle
                     length = big_length + little_length

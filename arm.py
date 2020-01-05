@@ -54,6 +54,11 @@ class DobotDominoes():
         self.device.move_to(self.x, self.y, self.z, r, wait=True)
         #self.updatePose()
         
+    def rotateRel(self,r):
+        self.updatePose()
+        self.device.move_to(self.x, self.y, self.z, self.r + r, wait=True)
+        #self.updatePose()
+        
     def enSuck(self):
         self.device.suck(True)
     
@@ -79,7 +84,7 @@ class DobotDominoes():
         self.updatePose()
         self.moveAbs(x,y,25)
         self.enSuck()
-        self.moveAbs(x,y,10)
+        self.moveAbs(x,y,8)
         self.moveAbs(x,y,25)
     
     def goDisSuck(self,x,y):
@@ -88,8 +93,9 @@ class DobotDominoes():
         self.disSuck()
   
 # myDobot=DobotDominoes()      
-# _set_ptp_cmd(x, y, z, r, mode=MODE_PTP_MOVL_XYZ, wait=wait)
+# # _set_ptp_cmd(x, y, z, r, mode=MODE_PTP_MOVL_XYZ, wait=wait)
 # myDobot.goHome()
+# myDobot.goTopHand()
 #device.move_to(165, 0, 195, 0, wait=True)
 #device.move_to(20, y, z, r, wait=True)
 #device.move_to(x, y, z, r, wait=True)  # we wait until this movement is done before continuing

@@ -76,10 +76,10 @@ def real_rotate(angle, thres):
     if abs(angle) <= thres:
         index = 0
     elif angle > thres:
-        myDobot.rotateAbs(-angle + thres)
+        myDobot.rotateRel(-angle + thres)
         index = 1
     elif angle < -thres:
-        myDobot.rotateAbs(-angle - thres)
+        myDobot.rotateRel(-angle - thres)
         index = 2
     return index
 
@@ -117,7 +117,7 @@ cap=cv.VideoCapture(1)
 _,frame=cap.read()
 cap.set(cv.CAP_PROP_FOCUS, 0)
 cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 0)
-cap.set(cv.CAP_PROP_EXPOSURE, -7)
+cap.set(cv.CAP_PROP_EXPOSURE, -6)
 cap.set(cv.CAP_PROP_GAIN, 0)
 time.sleep(2)
 time.sleep(1)
@@ -138,11 +138,12 @@ result = image_recognition.find_dominoes(img, 12)[0]
 
 # get the spacial informations of the domino and convert them into real coordinates
 result=finalOutput(frame)
+input("blaa")
 #calcScale((527.5,161),(306.7,-76.6),(226,147),(315.3,51.6),(299,258),(270.1,19.1))
 # get the spacial information of the domino and convert them into real coordinates
 
 # domino = result[0]
-domino = ["22", result[0][1]]
+domino = ["11", result[0][1]]
 start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
 
 # Add the domino to the list of dominoes on the board
@@ -152,7 +153,6 @@ Board.append(dom)
 # =============================================================================
 # # III) Robot go on top of his hand
 # =============================================================================
-
 
 # myDobot.arm.goSuck(200,0)
 myDobot.goTopHand()
@@ -168,6 +168,7 @@ _,frame = cap.read()
 time.sleep(1)
 
 result_hand = finalOutput(frame)
+input("blaa")
 #print(result_hand)
 robot_hand = []
 for domino in result_hand:
@@ -210,9 +211,9 @@ index = real_rotate(angle)
 '''
 
 # if the domino has to be rotated by a very large angle, rotate the suction cup first 
-rotate_in_air = principal_angle(dom.angle - play_real[1][2])
+rotate_in_air = principal_angle(dom.angle - play_real[1][2]) - 15
 real_rotate(rotate_in_air, 140)
-
+time.sleep(2)
 # pick the tilt to the good coordinates
 myDobot.goSuck(play_real[1][0], play_real[1][1])
 
@@ -221,10 +222,12 @@ myDobot.goSuck(play_real[1][0], play_real[1][1])
 # =============================================================================
 
 myDobot.goTop()
-myDobot.rotateAbs(rotate_in_air)
+myDobot.rotateRel(rotate_in_air)
 myDobot.goDisSuck(dom.x, dom.y)
-
+time.sleep(2)
 myDobot.goTop()
+myDobot.rotateRel(-rotate_in_air)
+time.sleep(2)
             
 # =============================================================================
 # # VIII) Wait for the player to play
@@ -239,20 +242,25 @@ input("It is your turn, please play and type ENTER...")
 
 #*** We just need to addapt what we have done before and make a loop
 while(True):
+    
+    myDobot.rotateAbs(0)
+    
     # =============================================================================
     # # VII) Robot goes back in the top of the board and learn which domino was added by the player
     # =============================================================================
     
     # compute dominoes on the board before picture
     board_before = []
-    for domino in result:
-        board_before.append(domino[0])
+    for domino in Board:
+        board_before.append(domino.name)
         
     myDobot.goTop()
     time.sleep(2)
     _,frame = cap.read()
     _,frame = cap.read()
+    time.sleep(1)
     result = finalOutput(frame)
+    input("blaa")
 
     # find the new domino
     new_domino = []
@@ -280,6 +288,9 @@ while(True):
         print(obj.name)
         if obj.name == new_parent[0]:
             new_parent = obj
+            break
+    if type(new_parent) == list:
+        new_parent = Board[-1]
     # Add the new_domino to the list of dominoes on the board
     dom = AI_v3.play_this_domino(new_domino[0], new_parent)
     Board.append(dom)
@@ -288,7 +299,7 @@ while(True):
     # # III) Robot go on top of his hand
     # =============================================================================
 
-    
+    time.sleep(5)
     myDobot.goTopHand()
     time.sleep(5)
     _,frame=cap.read()
@@ -296,6 +307,7 @@ while(True):
     time.sleep(1)
     #cv.imwrite('frame'+str(1)+".bmp",frame)
     result_hand = finalOutput(frame)
+    input("blaa")
     robot_hand = []
     for domino in result_hand:
         robot_hand.append(domino[0]) # name of the domino
@@ -324,7 +336,24 @@ while(True):
     play_real[1] = coord_hand(play_real[1][0],play_real[1][1],play_real[1][2])
     
     # if the domino has to be rotated by a very large angle, rotate the suction cup first 
-    rotate_in_air = principal_angle(dom.angle - play_real[1][2])
+    rotate_in_air = principal_angle(dom.angle - play_real[1][2]) - 15
     real_rotate(rotate_in_air, 140)
+    time.sleep(2)
     
+    # pick the tilt to the good coordinates
+    myDobot.goSuck(play_real[1][0], play_real[1][1])
+
+    # =============================================================================
+    # # VI) Robot go back in front of the board and place the tilt
+    # =============================================================================
+    
+    myDobot.goTop()
+    myDobot.rotateRel(rotate_in_air)
+    myDobot.goDisSuck(dom.x, dom.y)
+    time.sleep(2)
+    myDobot.goTop()
+    myDobot.rotateRel(-rotate_in_air)
+    time.sleep(2)
+            
+    input("It is your turn, please play and type ENTER...")
     
