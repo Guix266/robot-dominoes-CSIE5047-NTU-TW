@@ -131,7 +131,7 @@ def dominoAngle(input):
         second=input[i+1]
         first_number=first[2]
         second_number=second[2]
-        if first_number < second_number:
+        if first_number <= second_number:
             angle.append(math.degrees(-math.atan2(second[1]-first[1],second[0]-first[0])))
         else:
             angle.append(math.degrees(-math.atan2(first[1]-second[1],first[0]-second[0])))

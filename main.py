@@ -24,13 +24,6 @@ def coord_board(X,Y,angle):
             The angle of a vector pointing from the half with lower number of points to the half with higher number.
             Is defined with respect to the y-axis counterclockwise.
     """
-    # Need to be changed during the calibration !!!!!!!!!!!!!!!!!!!!!
-    # take a point in front of the camera + take coordinate pixel on the image + take coordinates on the robot frame
-    '''
-    pixel_coord = (178,168)
-    real_coord = (303.5, 66.5)
-    scale = 0.41408
-    '''
     X_robot = boardMat[0]*X+boardMat[1]*Y+boardMat[4]
     Y_robot = boardMat[2]*X+boardMat[3]*Y+boardMat[5]
     angle = angle - 90
@@ -43,10 +36,6 @@ def coord_hand(X,Y,angle):
             The angle of a vector pointing from the half with lower number of points to the half with higher number.
             Is defined with respect to the y-axis counterclockwise.
     """
-    '''
-    bl_corner = (150,-200)
-    scale = 0.41408
-    '''
     X_robot = handMat[0]*X+handMat[1]*Y+handMat[4]
     Y_robot = handMat[2]*X+handMat[3]*Y+handMat[5]
     angle = angle - 90
@@ -81,10 +70,9 @@ Board = []
 # Number of tilt in each hand
 m = 3
 
-
-# =============================================================================
-# 1rst round
-# =============================================================================
+# calibration
+boardMat=calcScale((241.5,179.5),(302.1,34.6),(71.5,156),(307.2,108.2),(540.5,371.5),(219.2,-95.3))
+handMat=calcScale((384.5,144),(-31.9,-317.1),(407,319.5),(-36.6,-242.4),(535.5,214),(-93.4,-288.9))
 
 # =============================================================================
 # # I) The robot go on top of the board and recognise the first domino
@@ -109,9 +97,6 @@ myDobot.printPose()
 myDobot.goTop()
 
 
-
-boardMat=calcScale((241.5,179.5),(302.1,34.6),(71.5,156),(307.2,108.2),(540.5,371.5),(219.2,-95.3))
-handMat=calcScale((384.5,144),(-31.9,-317.1),(407,319.5),(-36.6,-242.4),(535.5,214),(-93.4,-288.9))
 # =============================================================================
 # # II) Recognition of the first Board
 # =============================================================================
