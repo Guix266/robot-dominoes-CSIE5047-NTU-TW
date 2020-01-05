@@ -138,15 +138,16 @@ def dominoAngle(input):
     return angle
 
 def finalOutput(img):
-    img=cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-    _,binar=cv.threshold(img,40,255,cv.THRESH_BINARY)
-    ret=[]
-    processed=processImage(binar)
-    angle=dominoAngle(processed)
+    img = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+    # _,binar = cv.threshold(img, 40, 255, cv.THRESH_BINARY)
+    _,binar = cv.threshold(img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+    ret = []
+    processed = processImage(binar)
+    angle = dominoAngle(processed)
     for i in range(len(angle)):
-        x=(processed[i*2][0]+processed[i*2+1][0])//2
-        y=(processed[i*2][1]+processed[i*2+1][1])//2
-        ret.append([str(processed[i*2][2])+str(processed[i*2+1][2]),(x,y,angle[i])])
+        x = (processed[i*2][0]+processed[i*2+1][0])//2
+        y = (processed[i*2][1]+processed[i*2+1][1])//2
+        ret.append([str(processed[i*2][2])+str(processed[i*2+1][2]), (x, y, angle[i])])
     return ret
     
 '''    

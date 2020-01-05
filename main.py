@@ -17,36 +17,55 @@ import AI_v3
 from arm import *
 from camera import *
 
-def coord_board(X,Y,angle):
+
+def coord_board(X, Y, angle):
     """ x, y : int
             Pixel coordinates of the center of the domino
         phi : float
             The angle of a vector pointing from the half with lower number of points to the half with higher number.
             Is defined with respect to the y-axis counterclockwise.
     """
+    bl_corner = (372.2957, 147.126)
+
+    # Need to be changed during the calibration !!!!!!!!!!!!!!!!!!!!!
+    # take a point in front of the camera + take coordinate pixel on the image + take coordinates on the robot frame
+    '''
+    pixel_coord = (178,168)
+    real_coord = (303.5, 66.5)
+    scale = 0.41408
+    '''
     X_robot = boardMat[0]*X+boardMat[1]*Y+boardMat[4]
     Y_robot = boardMat[2]*X+boardMat[3]*Y+boardMat[5]
     angle = angle - 90
     return(X_robot, Y_robot, angle)
 
-def coord_hand(X,Y,angle):
+
+def coord_hand(X, Y, angle):
     """ x, y : int
             Pixel coordinates of the center of the domino
         phi : float
             The angle of a vector pointing from the half with lower number of points to the half with higher number.
             Is defined with respect to the y-axis counterclockwise.
     """
+
+    bl_corner = (150, -200)
+    '''
+    bl_corner = (150,-200)
+    scale = 0.41408
+    '''
     X_robot = handMat[0]*X+handMat[1]*Y+handMat[4]
     Y_robot = handMat[2]*X+handMat[3]*Y+handMat[5]
     angle = angle - 90
     return(X_robot, Y_robot, angle)
     
+
 def principal_angle(angle):
     while angle >= 180:
         angle -= 360
     while angle <= -180:
         angle += 360
     return(angle)
+
 
 def real_rotate(angle):
     if abs(angle) <= 90:
@@ -59,7 +78,7 @@ def real_rotate(angle):
         index = 2
     return index
 
-        
+
 # =============================================================================
 # Define the game
 # =============================================================================
@@ -75,7 +94,7 @@ boardMat=calcScale((241.5,179.5),(302.1,34.6),(71.5,156),(307.2,108.2),(540.5,37
 handMat=calcScale((384.5,144),(-31.9,-317.1),(407,319.5),(-36.6,-242.4),(535.5,214),(-93.4,-288.9))
 
 # =============================================================================
-# # I) The robot go on top of the board and recognise the first domino
+# # I) The robot go to the top of the board and recognise the first domino
 # =============================================================================
 
 # initialization
@@ -85,10 +104,10 @@ myDobot.goHome()
 
 cap=cv.VideoCapture(0)
 _,frame=cap.read()
-cap.set(cv.CAP_PROP_FOCUS,0)
-cap.set(cv.CAP_PROP_AUTO_EXPOSURE,0)
-cap.set(cv.CAP_PROP_EXPOSURE,-7)
-cap.set(cv.CAP_PROP_GAIN,0)
+cap.set(cv.CAP_PROP_FOCUS, 0)
+cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 0)
+cap.set(cv.CAP_PROP_EXPOSURE, -7)
+cap.set(cv.CAP_PROP_GAIN, 0)
 time.sleep(2)
 _,frame=cap.read()
 
@@ -105,11 +124,21 @@ myDobot.goTop()
 _,frame=cap.read()
 #for the test import an image
 
+
+'''
+plt.imshow(img)
+
+# Recognition of the first domino
+result = image_recognition.find_dominoes(img, 12)[0]
+'''
+result = finalOutput(frame)
+# get the spacial informations of the domino and convert them into real coordinates
 result=finalOutput(frame)
 #calcScale((527.5,161),(306.7,-76.6),(226,147),(315.3,51.6),(299,258),(270.1,19.1))
-# get the spacial informations of the domino annd convert them into real coordinates
+# get the spacial information of the domino and convert them into real coordinates
+
 domino = result[0]
-start_X, start_Y, start_angle = coord_board(domino[1][0],domino[1][1],domino[1][2])
+start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
 
 # Add the domino to the list of dominoes on the board
 dom = AI_v2.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
@@ -144,6 +173,9 @@ else:
 
 result = image_recognition.find_dominoes(img, 11) #! m
 '''
+
+_,frame = cap.read()
+result = finalOutput(frame)
 #print(result)
 robot_hand = []
 for domino in result:
@@ -152,15 +184,15 @@ for domino in result:
 
 # Compute all the possible plays of robot
 parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
-#Choose the most adapted play
+# Choose the most adapted play
 play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
 print(play)
 
 # Add to the list this dominoes
-if play == False:
-    print("No play available for the robot. ")
+if not play:
+    print("No move available for the robot. ")
     input("Please draw for the robot and type [ENTER]")
-else :
+else:
     print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
     
     dom = AI_v2.play_this_domino(play[0], play[1])
@@ -220,14 +252,20 @@ while(True):
 
     myDobot.goTop()
     time.sleep(2)
-    _,frame=cap.read()
-    #for the test import an image
-    result=finalOutput(frame)
+    _,frame = cap.read()
+    result = finalOutput(frame)
+
+    # find the new domino
+    for i in range(len(result)):
+        try:
+            domino = Domino_on_board(result[i][0])
+        except:
+            pass
+    if domino == None:
+        raise Exception("I can't find a new domino on the board!")
+    print("I see a new domino: %s" % str(domino.name))
     
-    
-    domino = result[0]
-    
-    start_X, start_Y, start_angle = coord_board(domino[1][0],domino[1][1],domino[1][2])
+    start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
     
     # Add the domino to the list of dominoes on the board
     
@@ -235,11 +273,11 @@ while(True):
     time.sleep(1)
     _,frame=cap.read()
     #cv.imwrite('frame'+str(1)+".bmp",frame)
-    result=finalOutput(frame)
+    result = finalOutput(frame)
     robot_hand = []
     for domino in result:
-        robot_hand.append(domino[0])
-    # print(robot_hand)
+        robot_hand.append(domino[0]) # name of the domino
+    print("Robot hand: " + str(robot_hand))
     
     # Compute all the possible plays of robot
     parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
