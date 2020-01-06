@@ -14,7 +14,7 @@ import os
 import time
 
 # import the modules that we have created
-import AI_v3
+import AI_v2
 from arm import *
 from camera import *
 
@@ -114,7 +114,7 @@ time.sleep(1)
 myDobot.setHome(200,0,170,0) # x, y, z, theta
 myDobot.goHome()
 
-cap=cv.VideoCapture(0)
+cap=cv.VideoCapture(1)
 _,frame=cap.read()
 cap.set(cv.CAP_PROP_FOCUS, 0)
 cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 0)
@@ -122,7 +122,6 @@ cap.set(cv.CAP_PROP_EXPOSURE, -6)
 cap.set(cv.CAP_PROP_GAIN, 0)
 time.sleep(2)
 time.sleep(1)
-input("blaa")
 _,frame = cap.read()
 _,frame = cap.read()
 time.sleep(1)
@@ -149,7 +148,7 @@ domino = ["11", result[0][1]]
 start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
 
 # Add the domino to the list of dominoes on the board
-dom = AI_v3.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
+dom = AI_v2.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
 Board.append(dom)
 
 # =============================================================================
@@ -178,9 +177,9 @@ for domino in result_hand:
 # print(robot_hand)
 
 # Compute all the possible plays of robot
-parent_free_on_board, possibles = AI_v3.show_possibilities(robot_hand, Board)
+parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
 # Choose the most adapted play
-play = AI_v3.better_play(possibles) # play = ["11", dom_parent, num_connection]
+play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
 print(play)
 
 # Add to the list this dominoes
@@ -190,7 +189,7 @@ if not play:
 else:
     print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
     
-    dom = AI_v3.play_this_domino(play[0], play[1])
+    dom = AI_v2.play_this_domino(play[0], play[1])
     Board.append(dom)
     
 # Get the position of the domino in the hand
@@ -214,7 +213,7 @@ index = real_rotate(angle)
 
 # if the domino has to be rotated by a very large angle, rotate the suction cup first 
 rotate_in_air = principal_angle(dom.angle - play_real[1][2]) - 15
-real_rotate(rotate_in_air, 140)
+real_rotate(rotate_in_air, 120)
 time.sleep(2)
 # pick the tilt to the good coordinates
 print(play_real[1][0], play_real[1][1])
@@ -295,7 +294,7 @@ while(True):
     if type(new_parent) == list:
         new_parent = Board[-1]
     # Add the new_domino to the list of dominoes on the board
-    dom = AI_v3.play_this_domino(new_domino[0], new_parent)
+    dom = AI_v2.play_this_domino(new_domino[0], new_parent)
     Board.append(dom)
     
     # =============================================================================
@@ -317,9 +316,9 @@ while(True):
     print("Robot hand: " + str(robot_hand))
     
     # Compute all the possible plays of robot
-    parent_free_on_board, possibles = AI_v3.show_possibilities(robot_hand, Board)
+    parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
     #Choose the most adapted play
-    play = AI_v3.better_play(possibles) # play = ["11", dom_parent, num_connection]
+    play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
     print(play)
     
     if play == False:
@@ -328,7 +327,7 @@ while(True):
     else :
         print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
         
-        dom = AI_v3.play_this_domino(play[0], play[1])
+        dom = AI_v2.play_this_domino(play[0], play[1])
         Board.append(dom)
         
     # Get the position of the domino in the hand
@@ -340,7 +339,7 @@ while(True):
     
     # if the domino has to be rotated by a very large angle, rotate the suction cup first 
     rotate_in_air = principal_angle(dom.angle - play_real[1][2]) - 15
-    real_rotate(rotate_in_air, 140)
+    real_rotate(rotate_in_air, 120)
     time.sleep(2)
     
     # pick the tilt to the good coordinates
