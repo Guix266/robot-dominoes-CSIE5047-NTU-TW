@@ -182,8 +182,8 @@ class Domino_on_board(Domino):
         print("possition :"+ str(position))
         ag = 0
         length = 0
-        big_length = 1
-        little_length = 0.5
+        big_length = 26
+        little_length = 16
         # Coordinates
         if self.dom_type == "simple":
             if self.parent.south > self.parent.north:

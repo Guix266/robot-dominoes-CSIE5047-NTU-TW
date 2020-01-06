@@ -14,7 +14,7 @@ import os
 import time
 
 # import the modules that we have created
-import AI_v3
+import AI_v2
 from arm import *
 from camera import *
 
@@ -147,7 +147,7 @@ domino = ["11", result[0][1]]
 start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
 
 # Add the domino to the list of dominoes on the board
-dom = AI_v3.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
+dom = AI_v2.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
 Board.append(dom)
 
 # =============================================================================
@@ -176,9 +176,9 @@ for domino in result_hand:
 # print(robot_hand)
 
 # Compute all the possible plays of robot
-parent_free_on_board, possibles = AI_v3.show_possibilities(robot_hand, Board)
+parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
 # Choose the most adapted play
-play = AI_v3.better_play(possibles) # play = ["11", dom_parent, num_connection]
+play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
 print(play)
 
 # Add to the list this dominoes
@@ -188,7 +188,7 @@ if not play:
 else:
     print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
     
-    dom = AI_v3.play_this_domino(play[0], play[1])
+    dom = AI_v2.play_this_domino(play[0], play[1])
     Board.append(dom)
     
 # Get the position of the domino in the hand
@@ -292,7 +292,7 @@ while(True):
     if type(new_parent) == list:
         new_parent = Board[-1]
     # Add the new_domino to the list of dominoes on the board
-    dom = AI_v3.play_this_domino(new_domino[0], new_parent)
+    dom = AI_v2.play_this_domino(new_domino[0], new_parent)
     Board.append(dom)
     
     # =============================================================================
@@ -314,9 +314,9 @@ while(True):
     print("Robot hand: " + str(robot_hand))
     
     # Compute all the possible plays of robot
-    parent_free_on_board, possibles = AI_v3.show_possibilities(robot_hand, Board)
+    parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
     #Choose the most adapted play
-    play = AI_v3.better_play(possibles) # play = ["11", dom_parent, num_connection]
+    play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
     print(play)
     
     if play == False:
@@ -325,7 +325,7 @@ while(True):
     else :
         print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
         
-        dom = AI_v3.play_this_domino(play[0], play[1])
+        dom = AI_v2.play_this_domino(play[0], play[1])
         Board.append(dom)
         
     # Get the position of the domino in the hand
