@@ -21,3 +21,5 @@ myDobot.goTopHand()
 
 myDobot.goSuck(200,0)
 myDobot.rotateAbs(0)
+
+myDobot.goDisSuck(-85.82128643357206,-304.8988626105795)

@@ -82,14 +82,14 @@ class DobotDominoes():
 
     def goSuck(self,x,y):
         self.updatePose()
-        self.moveAbs(x,y,25)
+        self.moveAbs(x,y,22)
         self.enSuck()
-        self.moveAbs(x,y,8)
-        self.moveAbs(x,y,25)
+        self.moveAbs(x,y,6)
+        self.moveAbs(x,y,22)
     
     def goDisSuck(self,x,y):
         self.updatePose()
-        self.moveAbs(x,y,25)
+        self.moveAbs(x,y,22)
         self.disSuck()
   
 # myDobot=DobotDominoes()      

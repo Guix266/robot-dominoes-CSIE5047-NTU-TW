@@ -14,7 +14,7 @@ import os
 import time
 
 # import the modules that we have created
-import AI_v2
+import AI_v3
 from arm import *
 from camera import *
 
@@ -100,9 +100,10 @@ Board = []
 m = 3
 
 # calibration
-boardMat=calcScale((241.5,179.5),(302.1,34.6),(71.5,156),(307.2,108.2),(540.5,371.5),(219.2,-95.3))
-handMat=calcScale((384.5,144),(-31.9,-317.1),(407,319.5),(-36.6,-242.4),(535.5,214),(-93.4,-288.9))
-
+boardMat=calcScale((564,336),(238.7,-97.7),(336,252),(271.1,-0.9),(169.5,236),(277.4,67.4))
+handMat=calcScale((247.5,190.5),(36.1,-300),(377,204.5),(-19,-295.9),(521.5,203.5),(-79.8,-296))
+#boardMat=calcScale((241.5,179.5),(302.1,34.6),(71.5,156),(307.2,108.2),(540.5,371.5),(219.2,-95.3))
+#handMat=calcScale((384.5,144),(-31.9,-317.1),(407,319.5),(-36.6,-242.4),(535.5,214),(-93.4,-288.9))
 # =============================================================================
 # # I) The robot go to the top of the board and recognise the first domino
 # =============================================================================
@@ -113,7 +114,7 @@ time.sleep(1)
 myDobot.setHome(200,0,170,0) # x, y, z, theta
 myDobot.goHome()
 
-cap=cv.VideoCapture(1)
+cap=cv.VideoCapture(0)
 _,frame=cap.read()
 cap.set(cv.CAP_PROP_FOCUS, 0)
 cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 0)
@@ -121,6 +122,7 @@ cap.set(cv.CAP_PROP_EXPOSURE, -6)
 cap.set(cv.CAP_PROP_GAIN, 0)
 time.sleep(2)
 time.sleep(1)
+input("blaa")
 _,frame = cap.read()
 _,frame = cap.read()
 time.sleep(1)
@@ -138,7 +140,7 @@ result = image_recognition.find_dominoes(img, 12)[0]
 
 # get the spacial informations of the domino and convert them into real coordinates
 result=finalOutput(frame)
-input("blaa")
+
 #calcScale((527.5,161),(306.7,-76.6),(226,147),(315.3,51.6),(299,258),(270.1,19.1))
 # get the spacial information of the domino and convert them into real coordinates
 
@@ -147,7 +149,7 @@ domino = ["11", result[0][1]]
 start_X, start_Y, start_angle = coord_board(domino[1][0], domino[1][1], domino[1][2])
 
 # Add the domino to the list of dominoes on the board
-dom = AI_v2.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
+dom = AI_v3.Starting_Domino(domino[0], start_X, start_Y, start_angle) # ("11", 654, 76, 
 Board.append(dom)
 
 # =============================================================================
@@ -168,7 +170,7 @@ _,frame = cap.read()
 time.sleep(1)
 
 result_hand = finalOutput(frame)
-input("blaa")
+#input("blaa")
 #print(result_hand)
 robot_hand = []
 for domino in result_hand:
@@ -176,9 +178,9 @@ for domino in result_hand:
 # print(robot_hand)
 
 # Compute all the possible plays of robot
-parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
+parent_free_on_board, possibles = AI_v3.show_possibilities(robot_hand, Board)
 # Choose the most adapted play
-play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
+play = AI_v3.better_play(possibles) # play = ["11", dom_parent, num_connection]
 print(play)
 
 # Add to the list this dominoes
@@ -188,7 +190,7 @@ if not play:
 else:
     print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
     
-    dom = AI_v2.play_this_domino(play[0], play[1])
+    dom = AI_v3.play_this_domino(play[0], play[1])
     Board.append(dom)
     
 # Get the position of the domino in the hand
@@ -215,6 +217,7 @@ rotate_in_air = principal_angle(dom.angle - play_real[1][2]) - 15
 real_rotate(rotate_in_air, 140)
 time.sleep(2)
 # pick the tilt to the good coordinates
+print(play_real[1][0], play_real[1][1])
 myDobot.goSuck(play_real[1][0], play_real[1][1])
 
 # =============================================================================
@@ -260,7 +263,7 @@ while(True):
     _,frame = cap.read()
     time.sleep(1)
     result = finalOutput(frame)
-    input("blaa")
+    #input("blaa")
 
     # find the new domino
     new_domino = []
@@ -292,7 +295,7 @@ while(True):
     if type(new_parent) == list:
         new_parent = Board[-1]
     # Add the new_domino to the list of dominoes on the board
-    dom = AI_v2.play_this_domino(new_domino[0], new_parent)
+    dom = AI_v3.play_this_domino(new_domino[0], new_parent)
     Board.append(dom)
     
     # =============================================================================
@@ -307,16 +310,16 @@ while(True):
     time.sleep(1)
     #cv.imwrite('frame'+str(1)+".bmp",frame)
     result_hand = finalOutput(frame)
-    input("blaa")
+    #input("blaa")
     robot_hand = []
     for domino in result_hand:
         robot_hand.append(domino[0]) # name of the domino
     print("Robot hand: " + str(robot_hand))
     
     # Compute all the possible plays of robot
-    parent_free_on_board, possibles = AI_v2.show_possibilities(robot_hand, Board)
+    parent_free_on_board, possibles = AI_v3.show_possibilities(robot_hand, Board)
     #Choose the most adapted play
-    play = AI_v2.better_play(possibles) # play = ["11", dom_parent, num_connection]
+    play = AI_v3.better_play(possibles) # play = ["11", dom_parent, num_connection]
     print(play)
     
     if play == False:
@@ -325,7 +328,7 @@ while(True):
     else :
         print("The robot plays [ "+str(play[0][0])+" | "+str(play[0][1])+" ] on "+str(play[1]))
         
-        dom = AI_v2.play_this_domino(play[0], play[1])
+        dom = AI_v3.play_this_domino(play[0], play[1])
         Board.append(dom)
         
     # Get the position of the domino in the hand
