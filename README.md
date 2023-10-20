@@ -6,7 +6,7 @@ It aimed to teach a Dobot Magician robot arm to play dominoes with a human.
 - The game is modeled by a finite state machine (FSM) representing the state at every step.
 An approach with a custom ***decision tree*** was used to select the best strategy at every step. 
 
-[![animation](./images_md/robot_animation.gif)](https://youtu.be/2zgxg1RJdLI)
+[![animation](./image_md/robot_animation.gif)](https://youtu.be/2zgxg1RJdLI)
 
 ## I) Key Modules used
 
@@ -26,7 +26,7 @@ An approach with a custom ***decision tree*** was used to select the best strate
 
 First a model of the game and every of its rules is proposed
 
-### - Creation of the object class **Domino()**
+### Creation of the object class **Domino()** :
 
 The most adapted way to store the information about the dominoes was to
 use the object-oriented programming. Each domino object has the
@@ -48,16 +48,16 @@ the **Domino()** class : **Domino_on_board(Domino)** and
 **Domino_on_board**, a name, a Domino() object corresponding to the
 parent and the side of connection.
 
-|          ![](./images_md/image5.png)          | 
+|          ![](./image_md/image5.png)          | 
 |:---------------------------------------------:| 
 | Figure 0 : *Summary of the different classes* |
 
-|                     ![](/images_md/image1.png)                      | 
+|                     ![](/image_md/image1.png)                      | 
 |:-------------------------------------------------------------------:| 
 | Figure 1 : *Example of connection if \"42\" is the Starting domino* |
 
 
-### - Definition of the North and South side
+### Definition of the North and South side :
 
 I define the sides *north* and *south* to the following rules:
 
@@ -74,18 +74,18 @@ children. Indeed, the list children contain these one in this specific
 order: *\["North", "South", "East", "West"\].* For example, "22" has for
 children \[ North="64", South="20", East="32" \]. (cf. figure 2).
 
-|                     ![](./images_md/image2.png)                     | 
+|                     ![](./image_md/image2.png)                     | 
 |:-------------------------------------------------------------------:| 
 | Figure 2 : *Example of side definition with \"42\" as the parent domino* |
 
-### - Definition of the coordinates and angles
+### Definition of the coordinates and angles :
 
 Finally, I define the position of the domino's centre ( *x , y* ) and
 the *angle* of the domino (cf. figure 3). The angle is defined between
 the <ins>Y_robot axe</ins> and the <ins>vector along the principal
 domino's axe</ins> from the smallest to the biggest number.
 
-|             ![](./images_md/image3.png)              | 
+|             ![](./image_md/image3.png)              | 
 |:----------------------------------------------------:| 
 | Figure 3 : *Example of coordinates (x, y) and Angle* |
 
@@ -100,7 +100,7 @@ ag depending on the type of connection (cf. figure 4) :
 
 - self.y = self.parent.y - (length)\*np.cos(ag \*np.pi/180)
 
-|    ![](./images_md/image4.png)    | 
+|    ![](./image_md/image4.png)    | 
 |:---------------------------------:| 
 | Figure 4 : *Dominoes coordinates* |
 
@@ -146,6 +146,6 @@ end of the game, each domino left in a hand will give a malus to its
 owner corresponding to the sum of the dominoes' dots. This condition is
 then to reduce this malus.
 
-|                                                         ![](./images_md/image6.png)                                                         | 
+|                                                         ![](./image_md/image6.png)                                                         | 
 |:-------------------------------------------------------------------------------------------------------------------------------------------:| 
 | Figure 5 : *Result given by the algorithm for the player 2. parent_free correspond to the dominoes on the board that still can get a child* |
