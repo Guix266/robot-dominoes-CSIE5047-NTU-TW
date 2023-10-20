@@ -1,6 +1,6 @@
 # Dobot Magician, Dominoes and Me
 
-This is the final project for the Fall 2019 Robotics course at NTU in which we taught a Dobot Magician robot arm to play dominoes with a human.
+This repo is the final project for the Fall 2019 Robotics course at NTU (Nationnal Taiwan University) in which we taught a Dobot Magician robot arm to play dominoes with a human.
 
 ## Key Modules
 
