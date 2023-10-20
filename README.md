@@ -13,3 +13,11 @@ This repo is the final project for the Fall 2019 Robotics course at NTU (Nationn
 ## Result
 
 [![Watch the video](https://img.youtube.com/vi/2zgxg1RJdLI/hqdefault.jpg)](https://youtu.be/2zgxg1RJdLI)
+
+<object width="425" height="350">
+  <param name="movie" value="https://youtu.be/2zgxg1RJdLI" />
+  <param name="wmode" value="transparent" />
+  <embed src="https://youtu.be/2zgxg1RJdLI"
+         type="application/x-shockwave-flash"
+         wmode="transparent" width="425" height="350" />
+</object>
