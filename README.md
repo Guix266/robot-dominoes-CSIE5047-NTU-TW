@@ -6,7 +6,7 @@ It aimed to teach a Dobot Magician robot arm to play dominoes with a human.
 - The game is modeled by a finite state machine (FSM) representing the state at every step.
 An approach with a custom ***decision tree*** was used to select the best strategy at every step. 
 
-[![animation](./image_md/robot_animation.gif)](https://youtu.be/2zgxg1RJdLI)
+![animation](./image_md/robot_animation.gif)
 
 ## I) Key Modules used
 
